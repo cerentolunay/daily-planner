@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppExperience } from "./AppExperience";
 
 const navItems = [
   { href: "/", label: "Bugün", key: "today", marker: "B" },
@@ -13,9 +14,12 @@ const navItems = [
 interface AppShellProps {
   children: React.ReactNode;
   activePage: string;
+  todayProgress?: number;
 }
 
-export default function AppShell({ children, activePage }: AppShellProps) {
+export default function AppShell({ children, activePage, todayProgress = 0 }: AppShellProps) {
+  const progress = Math.max(0, Math.min(100, todayProgress));
+
   return (
     <div className="min-h-screen bg-lilac text-purple">
       <div className="mx-auto flex min-h-screen max-w-[1480px] flex-col gap-5 px-4 py-4 lg:flex-row lg:px-6 lg:py-6">
@@ -71,19 +75,25 @@ export default function AppShell({ children, activePage }: AppShellProps) {
             </nav>
 
             <div className="mt-auto hidden rounded-3xl bg-lilac p-5 text-purple lg:block">
-              <p className="text-sm font-bold">Bu haftanın ritmi</p>
+              <p className="text-sm font-black">Bugünkü ilerleme</p>
+              <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/75">
+                <div className="h-full rounded-full bg-neon transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="mt-2 text-2xl font-black">%{progress}</p>
+              <p className="mt-5 text-sm font-bold">Bu haftanın ritmi</p>
               <p className="mt-2 text-sm leading-6 text-purple/75">
                 Odak görevlerini sabitle, tamamlanan işleri neon enerjisiyle kapat.
               </p>
-              <button className="mt-4 w-full rounded-2xl bg-yellow px-4 py-3 text-sm font-bold text-purple transition hover:brightness-105">
+              <Link href="/tasks" className="mt-4 block w-full rounded-2xl bg-yellow px-4 py-3 text-center text-sm font-bold text-purple transition hover:brightness-105">
                 Görev Ekle
-              </button>
+              </Link>
             </div>
           </div>
         </aside>
 
         <main className="min-w-0 flex-1">{children}</main>
       </div>
+      <AppExperience />
     </div>
   );
 }

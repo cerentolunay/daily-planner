@@ -23,3 +23,45 @@ body {
 button, input, textarea {
   font: inherit;
 }
+
+@keyframes soft-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(0) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.98);
+  }
+}
+
+@keyframes fill-progress {
+  from {
+    width: 0;
+  }
+}
+
+@keyframes float-soft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-soft-pop {
+  animation: soft-pop 900ms ease both;
+}
+
+.animate-fill-progress {
+  animation: fill-progress 900ms ease-out both;
+}
+
+.animate-float-soft {
+  animation: float-soft 5s ease-in-out infinite;
+}
