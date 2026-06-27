@@ -12,9 +12,9 @@ from ...schemas.inbox_item import (
     InboxThreadRead,
     InboxThreadUpdate,
     TaskDraftRead,
-    TaskExtractionResult,
 )
 from ...schemas.task import TaskRead
+from ...services.ai.errors import AIError, ai_http_error
 from ...services.inbox_service import (
     add_item_to_thread,
     analyze_item,
@@ -100,19 +100,25 @@ def remove_existing_item_from_thread(thread_id: UUID, item_id: UUID, db: Session
 
 
 @router.post("/threads/{thread_id}/analyze", response_model=TaskDraftRead)
-def analyze_existing_thread(thread_id: UUID, db: Session = Depends(get_db)):
+async def analyze_existing_thread(thread_id: UUID, db: Session = Depends(get_db)):
     thread = get_thread(db, thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Inbox thread not found")
-    return analyze_thread(db, thread)
+    try:
+        return await analyze_thread(db, thread)
+    except AIError as error:
+        raise ai_http_error(error)
 
 
 @router.post("/threads/{thread_id}/convert-to-task", response_model=TaskRead)
-def convert_existing_thread_to_task(thread_id: UUID, db: Session = Depends(get_db)):
+async def convert_existing_thread_to_task(thread_id: UUID, db: Session = Depends(get_db)):
     thread = get_thread(db, thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Inbox thread not found")
-    return convert_thread_to_task(db, thread)
+    try:
+        return await convert_thread_to_task(db, thread)
+    except AIError as error:
+        raise ai_http_error(error)
 
 
 @router.get("/{inbox_item_id}", response_model=InboxItemRead)
@@ -140,9 +146,12 @@ def delete_existing_inbox_item(inbox_item_id: UUID, db: Session = Depends(get_db
     return {"detail": "Inbox item deleted"}
 
 
-@router.post("/{inbox_item_id}/analyze", response_model=TaskExtractionResult)
-def analyze_existing_item(inbox_item_id: UUID, db: Session = Depends(get_db)):
+@router.post("/{inbox_item_id}/analyze", response_model=TaskDraftRead)
+async def analyze_existing_item(inbox_item_id: UUID, db: Session = Depends(get_db)):
     item = get_inbox_item(db, inbox_item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Inbox item not found")
-    return analyze_item(db, item)
+    try:
+        return await analyze_item(db, item)
+    except AIError as error:
+        raise ai_http_error(error)

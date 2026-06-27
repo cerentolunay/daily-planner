@@ -5,6 +5,7 @@ from .api.routes.tasks import router as tasks_router
 from .api.routes.projects import router as projects_router
 from .api.routes.inbox import router as inbox_router
 from .api.routes.task_drafts import router as task_drafts_router
+from .api.routes.ai import router as ai_router
 from .models import Base
 from .core.database import engine
 
@@ -26,6 +27,7 @@ app.include_router(tasks_router)
 app.include_router(projects_router)
 app.include_router(inbox_router)
 app.include_router(task_drafts_router)
+app.include_router(ai_router)
 
 
 @app.on_event("startup")

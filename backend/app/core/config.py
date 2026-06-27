@@ -9,6 +9,17 @@ class Settings(BaseSettings):
     postgres_user: str = "dailyplanner"
     postgres_password: str = "dailyplanner"
     postgres_db: str = "dailyplanner"
+    ai_provider: str = "mock"
+    ai_enabled: bool = True
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-1.5-flash"
+    ai_daily_quota_free: int = 20
+    ai_daily_quota_pro: int = 300
+    ai_rate_limit_per_minute: int = 10
+    ai_cache_enabled: bool = True
+    ai_fallback_enabled: bool = True
+    ai_max_messages_per_thread: int = 10
+    ai_max_chars_per_request: int = 8000
 
 
 @lru_cache()

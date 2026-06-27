@@ -39,6 +39,14 @@ POSTGRES_USER=dailyplanner
 POSTGRES_PASSWORD=dailyplanner
 POSTGRES_DB=dailyplanner
 NEXT_PUBLIC_API_URL=http://localhost:8000
+AI_PROVIDER=gemini
+AI_ENABLED=true
+GEMINI_API_KEY=your_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
+AI_DAILY_QUOTA_FREE=20
+AI_RATE_LIMIT_PER_MINUTE=10
+AI_CACHE_ENABLED=true
+AI_FALLBACK_ENABLED=true
 ```
 
 Docker dışından backend çalıştırırken `backend/.env` içinde PostgreSQL host/port değerini lokal bağlantıya göre ayarlayın:
@@ -81,3 +89,33 @@ Task 07 ile Inbox Thread, Task Draft ve Subtask modelleri eklendi. Development s
 docker compose down -v
 docker compose up -d postgres
 ```
+
+## AI Manual Test Plan
+
+Test 1 - Health:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Test 2 - AI text analysis:
+
+```bash
+curl -X POST http://127.0.0.1:8000/ai/analyze/text \
+  -H "Content-Type: application/json" \
+  -d "{\"text\":\"Yarın saat 5'e kadar Codesight sunumunu bitirmem gerekiyor. Acil.\"}"
+```
+
+Test 3 - Thread analysis:
+
+```bash
+curl -X POST http://127.0.0.1:8000/ai/analyze/thread \
+  -H "Content-Type: application/json" \
+  -d "{\"messages\":[\"Codesight sunumunu hazırlayalım.\",\"Avantaj dezavantaj da olsun.\",\"CBOM kısmını da ekleyelim, cuma bitmiş olsun.\"]}"
+```
+
+Test 4 - Cache: aynı AI request'i ikinci kez gönder. Beklenen: `cache_hit: true`.
+
+Test 5 - Fallback: `GEMINI_API_KEY` boş bırak. Beklenen: `used_fallback: true`.
+
+Test 6 - Frontend: Inbox'ta mesajları seç, AI ile analiz et, preview gör, TaskDraft oluştur ve Task'a çevir.

@@ -6,6 +6,7 @@ import {
   ApiInboxItem,
   ApiInboxThread,
   ApiTaskDraft,
+  analyzeInboxItem,
   createInboxItem,
   createInboxThread,
   deleteInboxItem,
@@ -62,6 +63,7 @@ export function SmartInbox({
   const [activeDraft, setActiveDraft] = useState<ApiTaskDraft | null>(initialDrafts[0] || null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const selectedItems = useMemo(() => items.filter((item) => selected.includes(item.id)), [items, selected]);
   const pendingItems = items.filter((item) => item.status === "unprocessed" || item.status === "pending");
@@ -125,7 +127,13 @@ export function SmartInbox({
     recordActivity("task_updated", `${selected.length} mesaj tek thread altında gruplandı`);
 
     if (shouldAnalyze) {
-      const draft = await analyzeInboxThread(thread.id);
+      setIsAnalyzing(true);
+      const { data: draft, error: analyzeError } = await analyzeInboxThread(thread.id);
+      setIsAnalyzing(false);
+      if (analyzeError) {
+        setError(analyzeError);
+        return;
+      }
       if (draft) {
         setDrafts((current) => [draft, ...current]);
         setActiveDraft(draft);
@@ -168,6 +176,23 @@ export function SmartInbox({
     celebrate("Smart Inbox görevi hazır etti 🎉");
   }
 
+  async function analyzeSingleItem(item: ApiInboxItem) {
+    setIsAnalyzing(true);
+    setError("");
+    const { data: draft, error: analyzeError } = await analyzeInboxItem(item.id);
+    setIsAnalyzing(false);
+    if (analyzeError) {
+      setError(analyzeError);
+      return;
+    }
+    if (draft) {
+      setDrafts((current) => [draft, ...current]);
+      setActiveDraft(draft);
+      setItems((current) => current.map((currentItem) => (currentItem.id === item.id ? { ...currentItem, status: "analyzed" } : currentItem)));
+      setMessage("AI Preview için tek mesaj taslağı hazırlandı.");
+    }
+  }
+
   function toggleItem(itemId: string) {
     setSelected((current) => (current.includes(itemId) ? current.filter((id) => id !== itemId) : [...current, itemId]));
   }
@@ -185,6 +210,11 @@ export function SmartInbox({
             </div>
             <h3 className="mt-3 font-black text-purple">{item.title || item.detected_title || item.raw_text.slice(0, 70)}</h3>
             <p className="mt-2 line-clamp-3 text-sm font-bold leading-6 text-purple/65">{item.raw_text}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button variant="ghost" onClick={() => analyzeSingleItem(item)} disabled={isAnalyzing}>
+                {isAnalyzing ? "Analiz Ediliyor..." : "AI ile Analiz Et"}
+              </Button>
+            </div>
           </div>
         </div>
       </article>
@@ -231,7 +261,9 @@ export function SmartInbox({
         <div className="sticky top-4 z-20 flex flex-wrap items-center gap-3 rounded-[26px] border border-white/80 bg-purple p-4 text-white shadow-glow">
           <span className="font-black">{selected.length} mesaj seçildi</span>
           <Button onClick={() => makeThread(false)}>Thread Oluştur</Button>
-          <Button variant="ghost" onClick={() => makeThread(true)}>Birleştir ve Analiz Et</Button>
+          <Button variant="ghost" onClick={() => makeThread(true)} disabled={isAnalyzing}>
+            {isAnalyzing ? "Analiz Ediliyor..." : "Birleştir ve Analiz Et"}
+          </Button>
           <Button variant="ghost" onClick={() => setSelected([])}>Seçimi Temizle</Button>
           <Button variant="secondary" onClick={removeSelected}>Sil</Button>
         </div>
@@ -289,7 +321,18 @@ export function SmartInbox({
                 <PriorityBadge priority={priorityLabels[activeDraft.priority]} />
                 <StatusBadge status={statusLabels[activeDraft.status]} />
                 <span className={`rounded-full px-3 py-1 text-xs font-black text-purple ${confidenceClass(activeDraft.confidence)}`}>Confidence %{Math.round(activeDraft.confidence)}</span>
+                {activeDraft.analysis_json?.cache_hit ? <span className="rounded-full bg-neon px-3 py-1 text-xs font-black text-purple">Cache hit</span> : null}
+                {activeDraft.analysis_json?.used_fallback ? <span className="rounded-full bg-yellow px-3 py-1 text-xs font-black text-purple">Fallback</span> : null}
               </div>
+              {activeDraft.analysis_json?.used_fallback ? (
+                <p className="rounded-2xl bg-yellow/35 p-3 text-sm font-bold text-purple">Gemini yerine hızlı kural tabanlı analiz kullanıldı.</p>
+              ) : null}
+              {activeDraft.analysis_json?.cache_hit ? (
+                <p className="rounded-2xl bg-neon/35 p-3 text-sm font-bold text-purple">Bu analiz daha önce yapılmıştı, kayıtlı sonuç gösteriliyor.</p>
+              ) : null}
+              {activeDraft.analysis_json?.source_summary ? (
+                <p className="rounded-2xl bg-white/70 p-3 text-sm font-bold text-purple/70">Kaynak mesajlar: {String(activeDraft.analysis_json.source_summary)}</p>
+              ) : null}
               <div className="rounded-3xl bg-lilac/45 p-4">
                 <p className="font-black text-purple">Yapılacaklar</p>
                 <div className="mt-3 space-y-2">
@@ -303,7 +346,20 @@ export function SmartInbox({
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button onClick={convertDraft}>Görev Olarak Kaydet</Button>
-                <Button variant="ghost" onClick={() => activeDraft.thread_id && analyzeInboxThread(activeDraft.thread_id).then((draft) => draft && setActiveDraft(draft))}>Tekrar Analiz Et</Button>
+                <Button
+                  variant="ghost"
+                  disabled={isAnalyzing}
+                  onClick={async () => {
+                    if (!activeDraft.thread_id) return;
+                    setIsAnalyzing(true);
+                    const { data: draft, error: analyzeError } = await analyzeInboxThread(activeDraft.thread_id);
+                    setIsAnalyzing(false);
+                    if (analyzeError) setError(analyzeError);
+                    if (draft) setActiveDraft(draft);
+                  }}
+                >
+                  {isAnalyzing ? "Analiz Ediliyor..." : "Tekrar Analiz Et"}
+                </Button>
                 <Button variant="secondary" onClick={() => setActiveDraft(null)}>Vazgeç</Button>
               </div>
             </div>

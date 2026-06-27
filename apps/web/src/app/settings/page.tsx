@@ -1,4 +1,5 @@
 import AppShell from "../../components/AppShell";
+import { AIUsageWidget } from "../../components/AIUsageWidget";
 import { AiSettings } from "../../components/AiSettings";
 import { SettingsPreferences } from "../../components/SettingsPreferences";
 import { Card } from "../../components/ui";
@@ -32,6 +33,13 @@ export default function SettingsPage() {
           </p>
           <div className="mt-5">
             <AiSettings />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <p className="text-sm font-black uppercase tracking-[0.24em] text-purple/55">AI Kullanımı</p>
+          <div className="mt-5">
+            <AIUsageWidget />
           </div>
         </Card>
       </section>

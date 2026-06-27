@@ -85,6 +85,13 @@ export type ApiTaskDraft = {
   updated_at: string;
 };
 
+export type ApiAIUsageSummary = {
+  total_requests: number;
+  cache_hits: number;
+  fallbacks: number;
+  success_rate: number;
+};
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T[]> {
@@ -128,6 +135,26 @@ async function apiJson<T>(path: string, options: RequestInit): Promise<T | null>
   }
 }
 
+async function apiJsonResult<T>(path: string, options: RequestInit): Promise<{ data: T | null; error?: string }> {
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+      ...options,
+    });
+    const payload = response.status === 204 ? null : await response.json();
+    if (!response.ok) {
+      const detail = payload?.detail;
+      return { data: null, error: detail?.message || "AI analizi sırasında bir sorun oluştu." };
+    }
+    return { data: payload };
+  } catch {
+    return { data: null, error: "Backend ile bağlantı kurulamadı." };
+  }
+}
+
 export function getTasks() {
   return apiFetch<ApiTask>("/tasks/");
 }
@@ -146,6 +173,12 @@ export function getInboxThreads() {
 
 export function getTaskDrafts() {
   return apiFetch<ApiTaskDraft>("/task-drafts/");
+}
+
+export function getAIUsageSummary() {
+  return apiJson<ApiAIUsageSummary>("/ai/usage/summary", {
+    method: "GET",
+  });
 }
 
 export const priorityLabel = priorityLabels;
@@ -260,7 +293,14 @@ export function createInboxThread(payload: ThreadPayload) {
 }
 
 export function analyzeInboxThread(threadId: string) {
-  return apiJson<ApiTaskDraft>(`/inbox/threads/${threadId}/analyze`, {
+  return apiJsonResult<ApiTaskDraft>(`/inbox/threads/${threadId}/analyze`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export function analyzeInboxItem(itemId: string) {
+  return apiJsonResult<ApiTaskDraft>(`/inbox/${itemId}/analyze`, {
     method: "POST",
     body: JSON.stringify({}),
   });

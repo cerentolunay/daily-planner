@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 from ..models.inbox_item import InboxItem, InboxThread, TaskDraft
 from ..models.task import Subtask, Task
 from ..schemas.inbox_item import InboxItemCreate, InboxItemUpdate, InboxThreadCreate, InboxThreadUpdate, TaskDraftCreate, TaskDraftUpdate
-from .ai import ExtractionEngine
+from .ai.gateway import AIGateway
 
 
 def get_inbox_items(db: Session):
@@ -101,20 +101,23 @@ def analysis_to_draft_payload(result, thread_id: UUID | None = None):
     }
 
 
-def analyze_item(db: Session, item: InboxItem):
-    result = ExtractionEngine().analyze_text(item.raw_text)
+async def analyze_item(db: Session, item: InboxItem):
+    result = await AIGateway(db).analyze_text(item.raw_text)
     item.detected_title = result.title
     item.detected_deadline = result.deadline.isoformat() if result.deadline else None
     item.detected_project = result.project_hint
     item.detected_priority = result.priority
     item.status = "analyzed"
+    draft = TaskDraft(**analysis_to_draft_payload(result, item.thread_id))
+    db.add(draft)
     db.commit()
     db.refresh(item)
-    return result
+    db.refresh(draft)
+    return draft
 
 
-def analyze_thread(db: Session, thread: InboxThread):
-    result = ExtractionEngine().analyze_thread(thread.items)
+async def analyze_thread(db: Session, thread: InboxThread):
+    result = await AIGateway(db).analyze_thread([item.raw_text for item in thread.items])
     thread.summary = result.source_summary
     thread.project_hint = result.project_hint
     thread.deadline_hint = result.deadline
@@ -186,6 +189,6 @@ def convert_draft_to_task(db: Session, draft: TaskDraft):
     return task
 
 
-def convert_thread_to_task(db: Session, thread: InboxThread):
-    draft = analyze_thread(db, thread)
+async def convert_thread_to_task(db: Session, thread: InboxThread):
+    draft = await analyze_thread(db, thread)
     return convert_draft_to_task(db, draft)
