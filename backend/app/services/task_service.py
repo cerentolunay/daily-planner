@@ -13,7 +13,7 @@ def get_task(db: Session, task_id: UUID):
 
 
 def create_task(db: Session, task_in: TaskCreate):
-    task = Task(**task_in.dict())
+    task = Task(**task_in.model_dump())
     db.add(task)
     db.commit()
     db.refresh(task)
@@ -21,7 +21,7 @@ def create_task(db: Session, task_in: TaskCreate):
 
 
 def update_task(db: Session, task: Task, task_in: TaskUpdate):
-    for field, value in task_in.dict(exclude_unset=True).items():
+    for field, value in task_in.model_dump(exclude_unset=True).items():
         setattr(task, field, value)
     db.commit()
     db.refresh(task)

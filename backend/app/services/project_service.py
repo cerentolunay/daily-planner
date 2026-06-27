@@ -13,7 +13,7 @@ def get_project(db: Session, project_id: UUID):
 
 
 def create_project(db: Session, project_in: ProjectCreate):
-    project = Project(**project_in.dict())
+    project = Project(**project_in.model_dump())
     db.add(project)
     db.commit()
     db.refresh(project)
@@ -21,7 +21,7 @@ def create_project(db: Session, project_in: ProjectCreate):
 
 
 def update_project(db: Session, project: Project, project_in: ProjectUpdate):
-    for field, value in project_in.dict(exclude_unset=True).items():
+    for field, value in project_in.model_dump(exclude_unset=True).items():
         setattr(project, field, value)
     db.commit()
     db.refresh(project)

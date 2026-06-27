@@ -2,6 +2,7 @@ from typing import Optional
 from uuid import UUID
 from datetime import datetime
 from pydantic import BaseModel
+from pydantic import ConfigDict
 
 
 class TaskBase(BaseModel):
@@ -31,10 +32,8 @@ class TaskUpdate(BaseModel):
 
 
 class TaskRead(TaskBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        orm_mode = True
-        from_attributes = True

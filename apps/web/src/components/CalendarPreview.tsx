@@ -14,12 +14,12 @@ export function CalendarPreview() {
       {days.map((day) => (
         <div
           key={day.label}
-          className={`rounded-2xl border p-3 text-center ${
-            day.active ? "border-yellow bg-yellow text-night" : "border-lilac/20 bg-night/60 text-lilac/70"
+          className={`rounded-2xl p-3 text-center ${
+            day.active ? "bg-yellow text-purple" : "bg-white/70 text-purple/70"
           }`}
         >
-          <p className="text-xs font-semibold">{day.label}</p>
-          <p className="mt-2 text-lg font-bold">{day.date}</p>
+          <p className="text-xs font-bold">{day.label}</p>
+          <p className="mt-2 text-lg font-black">{day.date}</p>
         </div>
       ))}
     </div>

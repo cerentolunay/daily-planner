@@ -13,7 +13,7 @@ def get_inbox_item(db: Session, inbox_item_id: UUID):
 
 
 def create_inbox_item(db: Session, inbox_item_in: InboxItemCreate):
-    item = InboxItem(**inbox_item_in.dict())
+    item = InboxItem(**inbox_item_in.model_dump())
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -21,7 +21,7 @@ def create_inbox_item(db: Session, inbox_item_in: InboxItemCreate):
 
 
 def update_inbox_item(db: Session, item: InboxItem, inbox_item_in: InboxItemUpdate):
-    for field, value in inbox_item_in.dict(exclude_unset=True).items():
+    for field, value in inbox_item_in.model_dump(exclude_unset=True).items():
         setattr(item, field, value)
     db.commit()
     db.refresh(item)

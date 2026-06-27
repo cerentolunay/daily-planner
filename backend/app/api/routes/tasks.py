@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from uuid import UUID
 from ..deps import get_db
 from ...services.task_service import (
     get_tasks,
@@ -24,7 +25,7 @@ def create_new_task(task_in: TaskCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{task_id}", response_model=TaskRead)
-def read_task(task_id: str, db: Session = Depends(get_db)):
+def read_task(task_id: UUID, db: Session = Depends(get_db)):
     task = get_task(db, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -32,7 +33,7 @@ def read_task(task_id: str, db: Session = Depends(get_db)):
 
 
 @router.patch("/{task_id}", response_model=TaskRead)
-def update_existing_task(task_id: str, task_in: TaskUpdate, db: Session = Depends(get_db)):
+def update_existing_task(task_id: UUID, task_in: TaskUpdate, db: Session = Depends(get_db)):
     task = get_task(db, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -40,7 +41,7 @@ def update_existing_task(task_id: str, task_in: TaskUpdate, db: Session = Depend
 
 
 @router.delete("/{task_id}")
-def delete_existing_task(task_id: str, db: Session = Depends(get_db)):
+def delete_existing_task(task_id: UUID, db: Session = Depends(get_db)):
     task = get_task(db, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

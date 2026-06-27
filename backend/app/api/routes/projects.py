@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from uuid import UUID
 from ..deps import get_db
 from ...services.project_service import (
     get_projects,
@@ -24,7 +25,7 @@ def create_new_project(project_in: ProjectCreate, db: Session = Depends(get_db))
 
 
 @router.get("/{project_id}", response_model=ProjectRead)
-def read_project(project_id: str, db: Session = Depends(get_db)):
+def read_project(project_id: UUID, db: Session = Depends(get_db)):
     project = get_project(db, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -32,7 +33,7 @@ def read_project(project_id: str, db: Session = Depends(get_db)):
 
 
 @router.patch("/{project_id}", response_model=ProjectRead)
-def update_existing_project(project_id: str, project_in: ProjectUpdate, db: Session = Depends(get_db)):
+def update_existing_project(project_id: UUID, project_in: ProjectUpdate, db: Session = Depends(get_db)):
     project = get_project(db, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -40,7 +41,7 @@ def update_existing_project(project_id: str, project_in: ProjectUpdate, db: Sess
 
 
 @router.delete("/{project_id}")
-def delete_existing_project(project_id: str, db: Session = Depends(get_db)):
+def delete_existing_project(project_id: UUID, db: Session = Depends(get_db)):
     project = get_project(db, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")

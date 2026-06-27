@@ -1,59 +1,57 @@
 import AppShell from "../../components/AppShell";
+import { InboxComposer } from "../../components/InboxComposer";
 import { PriorityBadge, StatusBadge } from "../../components/badges";
-import { Button, Card, Textarea } from "../../components/ui";
+import { Card } from "../../components/ui";
+import { getInboxItems } from "../../lib/api";
 
-export default function InboxPage() {
+export default async function InboxPage() {
+  const inboxItems = await getInboxItems();
+  const latestMessage = inboxItems[0]?.raw_text || "Abi cuma gününe kadar Codesight sunumunu hazırlar mısın?";
+
   return (
     <AppShell activePage="inbox">
       <section className="space-y-5">
         <Card className="p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.24em] text-yellow">Mesajdan göreve</p>
-          <h1 className="mt-3 text-3xl font-semibold">Gelen Kutusu</h1>
-          <p className="mt-2 max-w-2xl text-lilac/75">
-            WhatsApp veya e-posta metnini yapıştır, şimdilik örnek algılama kartı üzerinden göreve dönüştür.
+          <p className="text-sm font-black uppercase tracking-[0.24em] text-purple/55">Mesajdan göreve</p>
+          <h1 className="mt-3 text-3xl font-black text-purple">Gelen Kutusu</h1>
+          <p className="mt-2 max-w-2xl text-purple/68">
+            WhatsApp veya e-posta metnini yapıştır, taslak görevi API üzerinden gelen kutusuna kaydet.
           </p>
         </Card>
 
         <div className="grid gap-5 xl:grid-cols-[1fr_0.72fr]">
           <Card className="p-6">
-            <label className="block text-sm font-semibold text-lilac">WhatsApp mesajını yapıştır</label>
-            <div className="mt-3">
-              <Textarea placeholder="Abi cuma gününe kadar Codesight sunumunu hazırlar mısın?" />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Button>Görev Çıkar</Button>
-              <Button variant="ghost">Taslak Kaydet</Button>
-            </div>
+            <InboxComposer />
           </Card>
 
-          <Card className="border-lilac/40 bg-lilac/10 p-6">
+          <Card className="border-lilac bg-white/78 p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.24em] text-lilac">Önizleme</p>
-                <h2 className="mt-2 text-2xl font-semibold">Algılanan Görev</h2>
+                <p className="text-sm font-black uppercase tracking-[0.24em] text-purple/55">Önizleme</p>
+                <h2 className="mt-2 text-2xl font-black text-purple">Algılanan Görev</h2>
               </div>
               <PriorityBadge priority="Yüksek" />
             </div>
 
-            <div className="mt-5 space-y-4 rounded-3xl border border-lilac/20 bg-night/70 p-5">
+            <div className="mt-5 space-y-4 rounded-3xl bg-lilac/45 p-5">
               <div>
-                <p className="text-sm text-lilac/70">Orijinal mesaj</p>
-                <p className="mt-2 rounded-2xl bg-white/[0.045] p-4 text-sm leading-6 text-white/90">
-                  Abi cuma gününe kadar Codesight sunumunu hazırlar mısın?
+                <p className="text-sm font-bold text-purple/62">Orijinal mesaj</p>
+                <p className="mt-2 rounded-2xl bg-white/70 p-4 text-sm leading-6 text-purple">
+                  {latestMessage}
                 </p>
               </div>
-              <div className="grid gap-3 text-sm">
+              <div className="grid gap-3 text-sm text-purple">
                 <p>
-                  <span className="text-lilac/70">Başlık: </span>
-                  <span className="font-semibold">Codesight sunumunu hazırla</span>
+                  <span className="text-purple/62">Başlık: </span>
+                  <span className="font-black">Codesight sunumunu hazırla</span>
                 </p>
                 <p>
-                  <span className="text-lilac/70">Proje: </span>
-                  <span className="font-semibold">Cyber-Quanta</span>
+                  <span className="text-purple/62">Proje: </span>
+                  <span className="font-black">Cyber-Quanta</span>
                 </p>
                 <p>
-                  <span className="text-lilac/70">Son tarih: </span>
-                  <span className="font-semibold">Cuma</span>
+                  <span className="text-purple/62">Son tarih: </span>
+                  <span className="font-black">Cuma</span>
                 </p>
                 <div className="flex flex-wrap gap-2 pt-2">
                   <PriorityBadge priority="Yüksek" />
