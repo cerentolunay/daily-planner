@@ -20,9 +20,18 @@ const emptyExtracted: ExtractedTask = {
   status: "todo",
 };
 
-function toDateTimeInput(keyword: "today" | "tomorrow") {
+function toDateTimeInput(keyword: "today" | "tomorrow" | "week" | "next-week" | number) {
   const date = new Date();
   if (keyword === "tomorrow") date.setDate(date.getDate() + 1);
+  if (keyword === "week") {
+    const diff = (5 - date.getDay() + 7) % 7 || 7;
+    date.setDate(date.getDate() + diff);
+  }
+  if (keyword === "next-week") date.setDate(date.getDate() + 7);
+  if (typeof keyword === "number") {
+    const diff = (keyword - date.getDay() + 7) % 7 || 7;
+    date.setDate(date.getDate() + diff);
+  }
   date.setHours(17, 0, 0, 0);
   const offset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
@@ -30,12 +39,51 @@ function toDateTimeInput(keyword: "today" | "tomorrow") {
 
 function mockExtract(rawText: string): ExtractedTask {
   const lower = rawText.toLocaleLowerCase("tr-TR");
+  const weekdayMap: Array<[string, number]> = [
+    ["pazartesi", 1],
+    ["salı", 2],
+    ["çarşamba", 3],
+    ["perşembe", 4],
+    ["cuma", 5],
+    ["cumartesi", 6],
+    ["pazar", 0],
+  ];
+  const weekday = weekdayMap.find(([label]) => lower.includes(label));
+  const project =
+    lower.includes("heptapus") ? "Heptapus" :
+    lower.includes("cyber-quanta") || lower.includes("cyber quanta") || lower.includes("codesight") ? "Cyber-Quanta" :
+    lower.includes("üniversite") || lower.includes("okul") ? "Üniversite" :
+    lower.includes("kişisel") ? "Kişisel" :
+    "Genel";
+
   return {
     title: rawText.split(/[.?]/)[0]?.replace(/^abi\s+/i, "").trim() || "Yeni görev",
-    deadline: lower.includes("yarın") ? toDateTimeInput("tomorrow") : lower.includes("bugün") ? toDateTimeInput("today") : "",
-    project: lower.includes("codesight") ? "Cyber-Quanta" : "Genel",
-    priority: lower.includes("acil") ? "urgent" : lower.includes("önemli") ? "high" : "medium",
-    status: lower.includes("beklemede") ? "waiting" : "todo",
+    deadline: lower.includes("yarın")
+      ? toDateTimeInput("tomorrow")
+      : lower.includes("bugün")
+        ? toDateTimeInput("today")
+        : lower.includes("bu hafta")
+          ? toDateTimeInput("week")
+          : lower.includes("haftaya")
+            ? toDateTimeInput("next-week")
+            : weekday
+              ? toDateTimeInput(weekday[1])
+              : "",
+    project,
+    priority: lower.includes("acil") || lower.includes("kritik")
+      ? "urgent"
+      : lower.includes("önemli")
+        ? "high"
+        : lower.includes("ufak") || lower.includes("basit") || lower.includes("sonra")
+          ? "low"
+          : "medium",
+    status: lower.includes("beklemede")
+      ? "waiting"
+      : lower.includes("başladım") || lower.includes("devam ediyor")
+        ? "in_progress"
+        : lower.includes("bitti") || lower.includes("tamamlandı")
+          ? "done"
+          : "todo",
   };
 }
 

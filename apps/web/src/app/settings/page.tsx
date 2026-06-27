@@ -1,4 +1,5 @@
 import AppShell from "../../components/AppShell";
+import { SettingsPreferences } from "../../components/SettingsPreferences";
 import { Card } from "../../components/ui";
 
 export default function SettingsPage() {
@@ -13,6 +14,13 @@ export default function SettingsPage() {
 
         <Card className="border-neon/80 bg-neon/35 p-6">
           <p className="font-medium text-purple">Bu ekran temel altyapıyı hazırlamak için oluşturuldu.</p>
+        </Card>
+
+        <Card className="p-6">
+          <p className="text-sm font-black uppercase tracking-[0.24em] text-purple/55">Bildirim ve Tercihler</p>
+          <div className="mt-5">
+            <SettingsPreferences />
+          </div>
         </Card>
       </section>
     </AppShell>

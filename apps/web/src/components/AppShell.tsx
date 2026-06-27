@@ -6,6 +6,7 @@ const navItems = [
   { href: "/inbox", label: "Gelen Kutusu", key: "inbox", marker: "K" },
   { href: "/calendar", label: "Takvim", key: "calendar", marker: "T" },
   { href: "/projects", label: "Projeler", key: "projects", marker: "P" },
+  { href: "/focus", label: "Odak", key: "focus", marker: "O" },
   { href: "/settings", label: "Ayarlar", key: "settings", marker: "A" },
 ];
 

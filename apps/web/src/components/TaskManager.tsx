@@ -61,6 +61,20 @@ function toLocalInputValue(deadline?: string | null) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
+function deadlineFor(action: "today" | "tomorrow" | "week" | "clear") {
+  if (action === "clear") return null;
+  const date = new Date();
+  if (action === "tomorrow") date.setDate(date.getDate() + 1);
+  if (action === "week") {
+    const day = date.getDay();
+    const friday = 5;
+    const diff = (friday - day + 7) % 7 || 7;
+    date.setDate(date.getDate() + diff);
+  }
+  date.setHours(18, 0, 0, 0);
+  return date.toISOString();
+}
+
 export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[]; projects: ApiProject[] }) {
   const [tasks, setTasks] = useState<UiTask[]>(
     initialTasks.map((task) => ({
@@ -162,6 +176,17 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
     setTasks((current) => current.map((item) => (item.id === task.id ? { ...item, status } : item)));
   }
 
+  async function scheduleTask(task: UiTask, action: "today" | "tomorrow" | "week" | "clear") {
+    const deadline = deadlineFor(action);
+    const saved = await updateTask(task.id, { deadline });
+    if (!saved) {
+      setError("Son tarih güncellenemedi.");
+      return;
+    }
+    setTasks((current) => current.map((item) => (item.id === task.id ? { ...item, deadline } : item)));
+    setMessage("Son tarih güncellendi.");
+  }
+
   async function removeTask(task: UiTask) {
     if (!window.confirm("Bu görevi silmek istediğine emin misin?")) return;
     const result = await deleteTask(task.id);
@@ -239,6 +264,12 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
                     <Button variant="ghost" onClick={() => changeStatus(task, "done")}>Tamamla</Button>
                     <Button variant="secondary" onClick={() => removeTask(task)}>Sil</Button>
                   </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button variant="ghost" onClick={() => scheduleTask(task, "today")}>Bugüne Al</Button>
+                  <Button variant="ghost" onClick={() => scheduleTask(task, "tomorrow")}>Yarına Al</Button>
+                  <Button variant="ghost" onClick={() => scheduleTask(task, "week")}>Bu Hafta</Button>
+                  <Button variant="ghost" onClick={() => scheduleTask(task, "clear")}>Son Tarihi Temizle</Button>
                 </div>
               </article>
             ))
