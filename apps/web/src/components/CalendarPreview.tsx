@@ -15,7 +15,7 @@ export function CalendarPreview() {
         <div
           key={day.label}
           className={`rounded-2xl border p-3 text-center ${
-            day.active ? "border-burnt bg-burnt text-[#1A2C30]" : "border-white/10 bg-[#0f2228] text-white/60"
+            day.active ? "border-yellow bg-yellow text-night" : "border-lilac/20 bg-night/60 text-lilac/70"
           }`}
         >
           <p className="text-xs font-semibold">{day.label}</p>

@@ -1,37 +1,37 @@
 # UI Guidelines
 
-## Renk paleti
+## Renk Paleti
 
-- `#FE7E3C` — Burnt Orange (Ana vurgu)
-- `#E4201B` — Lust Red (Acil durum)
-- `#6D413C` — Copper (Sıcak nötr)
-- `#0E6873` — Blue Lagoon (İkincil vurgu)
-- `#1A2C30` — Black Pearl (Arka plan)
-- `#FFFFFF` — White (Metin)
+- `#17152A` — Dark Background: ana uygulama arka planı
+- `#5D5491` — Purple: sidebar, ana kartlar ve koyu yüzeyler
+- `#FFD230` — Yellow: primary CTA butonları ve yüksek öncelik vurguları
+- `#E1FB62` — Neon: başarı, tamamlandı ve pozitif aksanlar
+- `#D2C7FF` — Lilac: soft kartlar, açıklama metinleri, badge ve highlight alanları
+- `#FFFFFF` — White: ana metin
 
 ## Tipografi
 
-- Temiz ve okunaklı font kullanılmalı
-- Başlıklar güçlü, gövde metni yeterince küçük ama okunabilir
-- Türkçe karakter desteği olan modern bir yazı tipi tercih edilmeli
+- Tüm görünür uygulama metinleri Türkçe olmalı.
+- Başlıklar güçlü ve net, açıklama metinleri daha yumuşak Lilac tonlarında olmalı.
+- Uzun metinler kompakt kartlarda taşmayacak şekilde kısa tutulmalı.
 
-## Bileşen kuralları
+## Bileşen Kuralları
 
-- Kartlar yuvarlatılmış olmalı
-- Arka planlar koyu, vurgular turuncu veya mavi olsun
-- Kırmızı yalnızca acil veya hata durumları için kullanılmalı
-- Düzgün boşluk ve rahat hizalama kullanılmalı
-- Çok fazla renk ve gereksiz grafikten kaçınılmalı
+- Ana arka plan `#17152A` kalmalı.
+- Kartlarda koyu mor yüzeyler ve lila sınırlar kullanılmalı.
+- Primary CTA butonları Yellow olmalı.
+- Tamamlandı, başarı ve pozitif durumlarda Neon kullanılmalı.
+- Soft bilgi kartları ve badge alanlarında Lilac kullanılmalı.
+- UI canlı ve genç hissettirmeli ama planner akışını kalabalıklaştırmamalı.
 
-## Aralık/boşluk
+## Aralık ve Yerleşim
 
-- Paneller arasında yeterli boşluk olmalı
-- Kartlar, butonlar ve form alanları nefes almalı
-- Ekran kenarlarında geniş boşluk bırakılmalı
+- Paneller arasında yeterli boşluk olmalı.
+- Kartlar, butonlar ve form alanları rahat okunmalı.
+- Dashboard, Görevler, Gelen Kutusu, Takvim ve Projeler sayfaları tek renk görünmemeli.
 
-## Karanlık tema kuralları
+## Karanlık Tema
 
-- Arka plan koyu tonlarda olmalı
-- Metin beyaz ve yüksek kontrastlı
-- Kart ve buton sınırları hafif opak tonlarda olmalı
-- Renkli aksanlar dikkat dağıtmayacak şekilde kullanılmalı
+- Metinlerde White kullanılmalı.
+- Açıklama metinlerinde Lilac tonları tercih edilmeli.
+- Renkli aksanlar görev önceliği, durum ve aksiyon hiyerarşisini netleştirmeli.

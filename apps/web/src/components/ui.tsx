@@ -3,10 +3,10 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const buttonVariants = {
-  primary: "bg-burnt text-[#1A2C30] hover:bg-[#ff925c]",
-  secondary: "bg-lagoon text-white hover:bg-[#127b88]",
-  ghost: "border border-white/10 bg-white/[0.04] text-white/80 hover:border-lagoon/70 hover:bg-lagoon/20",
-  danger: "bg-lust text-white hover:bg-[#ff342f]",
+  primary: "bg-yellow text-purple shadow-[0_10px_24px_rgba(255,210,48,0.28)] hover:brightness-105",
+  secondary: "bg-purple text-white hover:brightness-110",
+  ghost: "border border-purple/18 bg-white/55 text-purple hover:border-purple/35 hover:bg-neon",
+  danger: "bg-yellow text-purple hover:brightness-105",
 };
 
 export function Button({ className = "", variant = "primary", ...props }: ButtonProps) {
@@ -26,7 +26,7 @@ export function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`rounded-[28px] border border-white/10 bg-[#13272c] shadow-glow ${className}`}>
+    <div className={`rounded-[30px] border border-white/70 bg-white/72 text-purple shadow-glow backdrop-blur ${className}`}>
       {children}
     </div>
   );
@@ -35,7 +35,7 @@ export function Card({
 export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className="min-h-[220px] w-full resize-none rounded-3xl border border-white/10 bg-[#0f2228] p-4 text-sm text-white outline-none transition placeholder:text-white/40 focus:border-burnt focus:ring-4 focus:ring-burnt/10"
+      className="min-h-[220px] w-full resize-none rounded-3xl border border-purple/18 bg-white/75 p-4 text-sm text-purple outline-none transition placeholder:text-purple/45 focus:border-purple focus:ring-4 focus:ring-yellow/35"
       {...props}
     />
   );
@@ -44,7 +44,7 @@ export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className="w-full rounded-2xl border border-white/10 bg-[#0f2228] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/40 focus:border-burnt focus:ring-4 focus:ring-burnt/10"
+      className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none transition placeholder:text-purple/45 focus:border-purple focus:ring-4 focus:ring-yellow/35"
       {...props}
     />
   );

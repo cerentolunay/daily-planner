@@ -2,18 +2,18 @@ type Priority = "Düşük" | "Orta" | "Yüksek" | "Acil";
 type Status = "Yapılacak" | "Devam Ediyor" | "Beklemede" | "Tamamlandı" | "İptal Edildi";
 
 const priorityClass: Record<Priority, string> = {
-  Düşük: "border-lagoon/50 bg-lagoon/20 text-[#b9f4f9]",
-  Orta: "border-copper/70 bg-copper/40 text-[#ffd3c8]",
-  Yüksek: "border-burnt/70 bg-burnt/20 text-[#ffd4bd]",
-  Acil: "border-lust/70 bg-lust/20 text-[#ffbbb5]",
+  Düşük: "border-purple/15 bg-lilac text-purple",
+  Orta: "border-purple/35 bg-white text-purple",
+  Yüksek: "border-yellow bg-yellow text-purple",
+  Acil: "border-purple bg-purple text-white",
 };
 
 const statusClass: Record<Status, string> = {
-  Yapılacak: "border-white/10 bg-white/[0.05] text-white/75",
-  "Devam Ediyor": "border-burnt/60 bg-burnt/20 text-[#ffd4bd]",
-  Beklemede: "border-copper/70 bg-copper/30 text-[#ffd3c8]",
-  Tamamlandı: "border-lagoon/60 bg-lagoon/20 text-[#b9f4f9]",
-  "İptal Edildi": "border-white/10 bg-white/[0.04] text-white/50",
+  Yapılacak: "border-purple/15 bg-white text-purple",
+  "Devam Ediyor": "border-yellow bg-yellow/70 text-purple",
+  Beklemede: "border-lilac bg-lilac text-purple",
+  Tamamlandı: "border-neon bg-neon text-purple",
+  "İptal Edildi": "border-purple/10 bg-white/60 text-purple/55",
 };
 
 export function PriorityBadge({ priority }: { priority: Priority }) {

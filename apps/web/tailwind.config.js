@@ -7,17 +7,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        burnt: "#FE7E3C",
-        lust: "#E4201B",
-        copper: "#6D413C",
-        lagoon: "#0E6873",
-        pearl: "#1A2C30",
+        yellow: "#FFD230",
+        lilac: "#D2C7FF",
+        purple: "#5D5491",
+        neon: "#E1FB62",
       },
       backgroundColor: {
-        pearl: "#1A2C30",
+        lilac: "#D2C7FF",
       },
       boxShadow: {
-        glow: "0 15px 45px rgba(0,0,0,0.25)",
+        glow: "0 18px 45px rgba(93,84,145,0.18)",
       },
     },
   },

@@ -6,12 +6,12 @@ export default function SettingsPage() {
     <AppShell activePage="settings">
       <section className="space-y-5">
         <Card className="p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.24em] text-burnt">Tercihler</p>
+          <p className="text-sm uppercase tracking-[0.24em] text-yellow">Tercihler</p>
           <h1 className="mt-3 text-3xl font-semibold">Ayarlar</h1>
-          <p className="mt-2 text-white/60">Uygulama ayarları sonraki sürümlerde eklenecek.</p>
+          <p className="mt-2 text-lilac/75">Uygulama ayarları sonraki sürümlerde eklenecek.</p>
         </Card>
 
-        <Card className="border-copper/60 bg-copper/30 p-6">
+        <Card className="border-lilac/40 bg-lilac/10 p-6">
           <p className="text-white/80">Bu ekran temel altyapıyı hazırlamak için oluşturuldu.</p>
         </Card>
       </section>
