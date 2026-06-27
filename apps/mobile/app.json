@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "DailyPlanner",
+    "slug": "dailyplanner-mobile",
+    "scheme": "dailyplanner",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.dailyplanner.mobile",
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "data": [{ "mimeType": "text/plain" }, { "mimeType": "text/*" }],
+          "category": ["DEFAULT"]
+        }
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.dailyplanner.mobile"
+    },
+    "plugins": ["expo-router"]
+  }
+}

@@ -12,6 +12,20 @@ npm install
 npm run dev
 ```
 
+Mobile:
+
+```bash
+cd apps/mobile
+npm install
+npx expo start
+```
+
+Android:
+
+```bash
+npx expo start --android
+```
+
 Backend için önerilen yol Docker Compose kullanmaktır. Lokal Python ile çalıştırılacaksa `backend/.env` içinde `DATABASE_URL` değerinin çalışan PostgreSQL bağlantısını gösterdiğinden emin olun.
 
 ## Docker Development
@@ -28,6 +42,7 @@ Servisler:
 - Backend: http://localhost:8000
 - Backend health check: http://127.0.0.1:8000/health
 - PostgreSQL: localhost:5433 -> container içinde 5432
+- Mobile Expo: `cd apps/mobile && npx expo start`
 
 ## Environment Variables
 
@@ -119,3 +134,17 @@ Test 4 - Cache: aynı AI request'i ikinci kez gönder. Beklenen: `cache_hit: tru
 Test 5 - Fallback: `GEMINI_API_KEY` boş bırak. Beklenen: `used_fallback: true`.
 
 Test 6 - Frontend: Inbox'ta mesajları seç, AI ile analiz et, preview gör, TaskDraft oluştur ve Task'a çevir.
+
+## Mobile Manual Test Plan
+
+Test 1 - Mobile app opens: Expo app açılır ve Bugün ekranı görünür.
+
+Test 2 - Backend connection: Ayarlar ekranında backend URL doğru ayarlanır. Android Emulator için genellikle `http://10.0.2.2:8000` kullanılır.
+
+Test 3 - Manual WhatsApp paste: WhatsApp mesajı kopyalanır, Inbox capture alanına yapıştırılır, Inbox'a kaydedilir, AI ile analiz edilir ve TaskDraft görünür.
+
+Test 4 - Offline queue: Backend URL yanlış yapılır, capture gönderilir ve bekleyen capture olarak saklanır. Backend düzeltilince Tekrar Dene ile Inbox'a gönderilir.
+
+Test 5 - Multi-message grouping: Üç capture item seçilir, Birleştir ve Analiz Et yapılır, tek TaskDraft önerilir.
+
+Test 6 - Share intent preparation: Android paylaşım akışı manuel test edilir. Expo managed workflow sınırlı kalırsa `apps/mobile/README.md` içindeki prebuild/native module notu geçerlidir.
