@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dailyplanner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dailyplanner}
+      POSTGRES_DB: ${POSTGRES_DB:-dailyplanner}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - .env.example
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    volumes:
+      - ./apps/web:/app
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    command: npm run dev -- --hostname 0.0.0.0 --port 3000
+
+volumes:
+  postgres-data:
+    name: dailyplanner-postgres-data
