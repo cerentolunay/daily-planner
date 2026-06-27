@@ -72,3 +72,12 @@ Beklenen yanıt:
 ```json
 { "status": "ok" }
 ```
+
+### Development database reset
+
+Task 07 ile Inbox Thread, Task Draft ve Subtask modelleri eklendi. Development sırasında mevcut PostgreSQL volume eski şemayla çakışırsa volume'u sıfırlamak gerekebilir:
+
+```bash
+docker compose down -v
+docker compose up -d postgres
+```

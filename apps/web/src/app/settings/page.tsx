@@ -1,4 +1,5 @@
 import AppShell from "../../components/AppShell";
+import { AiSettings } from "../../components/AiSettings";
 import { SettingsPreferences } from "../../components/SettingsPreferences";
 import { Card } from "../../components/ui";
 
@@ -20,6 +21,17 @@ export default function SettingsPage() {
           <p className="text-sm font-black uppercase tracking-[0.24em] text-purple/55">Bildirim ve Tercihler</p>
           <div className="mt-5">
             <SettingsPreferences />
+          </div>
+        </Card>
+
+        <Card className="border-yellow/70 bg-yellow/30 p-6">
+          <p className="text-sm font-black uppercase tracking-[0.24em] text-purple/55">AI Ayarları</p>
+          <h2 className="mt-2 text-2xl font-black text-purple">AI hazır, bağlantı sonra</h2>
+          <p className="mt-2 text-sm font-bold leading-6 text-purple/65">
+            Bu seçenekler şimdilik localStorage’da tutulur. Gerçek AI entegrasyonu geldiğinde aynı tercih modeli kullanılabilir.
+          </p>
+          <div className="mt-5">
+            <AiSettings />
           </div>
         </Card>
       </section>

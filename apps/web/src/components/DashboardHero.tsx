@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "./ui";
 
 type DashboardHeroProps = {
   todayCount: number;
@@ -88,8 +87,11 @@ export function DashboardHero({ todayCount, overdueCount, urgentCount, progressR
                 Bugünün odağı: <span className="font-black text-purple">{focusTitle || "Henüz odak görevi yok"}</span>
               </p>
             </div>
-            <Link href="/tasks">
-              <Button className="w-full md:w-auto">Yeni Görev</Button>
+            <Link
+              href="/tasks"
+              className="block rounded-2xl bg-yellow px-5 py-3 text-center text-sm font-bold text-purple shadow-[0_10px_24px_rgba(255,210,48,0.28)] transition hover:brightness-105 md:w-auto"
+            >
+              Yeni Görev
             </Link>
           </div>
         </div>

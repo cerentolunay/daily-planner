@@ -8,6 +8,7 @@ const navItems = [
   { href: "/calendar", label: "Takvim", key: "calendar", marker: "T" },
   { href: "/projects", label: "Projeler", key: "projects", marker: "P" },
   { href: "/focus", label: "Odak", key: "focus", marker: "O" },
+  { href: "/integrations", label: "Entegrasyonlar", key: "integrations", marker: "E" },
   { href: "/settings", label: "Ayarlar", key: "settings", marker: "A" },
 ];
 

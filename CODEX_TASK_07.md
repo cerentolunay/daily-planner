@@ -817,3 +817,11 @@ Team management
 Native mobile app
 
 Bu task’ın amacı gerçek entegrasyon değil, AI-ready ve connector-ready mimariyi kurmaktır.
+
+
+
+
+
+
+
+.

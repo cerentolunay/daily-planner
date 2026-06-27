@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ApiInboxItem, ApiInboxThread, ApiProject, ApiTask, getInboxItems, getInboxThreads, getProjects, getTasks } from "../lib/api";
 
 const commands = [
   { label: "Yeni görev oluştur", hint: "N", href: "/tasks", action: "new-task" },
@@ -12,8 +13,13 @@ const commands = [
   { label: "Takvime git", hint: "G C", href: "/calendar" },
   { label: "Gelen kutusuna git", hint: "G I", href: "/inbox" },
   { label: "Odak modunu aç", hint: "", href: "/focus" },
+  { label: "Entegrasyonları aç", hint: "", href: "/integrations" },
+  { label: "Günlük özeti aç", hint: "", href: "/review/daily" },
+  { label: "Haftalık özeti aç", hint: "", href: "/review/weekly" },
   { label: "Ayarları aç", hint: "", href: "/settings" },
 ];
+
+const integrationResults = ["WhatsApp", "Gmail", "Google Calendar", "Slack", "GitHub", "Discord", "Notion", "Outlook"];
 
 function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
@@ -23,18 +29,45 @@ function isTypingTarget(target: EventTarget | null) {
 
 export function AppExperience() {
   const router = useRouter();
-  const pathname = usePathname();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState("");
   const [burst, setBurst] = useState(false);
   const [goMode, setGoMode] = useState(false);
+  const [tasks, setTasks] = useState<ApiTask[]>([]);
+  const [projects, setProjects] = useState<ApiProject[]>([]);
+  const [inboxItems, setInboxItems] = useState<ApiInboxItem[]>([]);
+  const [threads, setThreads] = useState<ApiInboxThread[]>([]);
 
   const filteredCommands = useMemo(() => {
     const normalized = query.toLocaleLowerCase("tr-TR");
     return commands.filter((command) => command.label.toLocaleLowerCase("tr-TR").includes(normalized));
   }, [query]);
+
+  const normalizedQuery = query.toLocaleLowerCase("tr-TR");
+  const searchGroups = [
+    {
+      title: "Görevler",
+      items: tasks.filter((task) => task.title.toLocaleLowerCase("tr-TR").includes(normalizedQuery)).slice(0, 4).map((task) => ({ label: task.title, href: "/tasks" })),
+    },
+    {
+      title: "Projeler",
+      items: projects.filter((project) => project.name.toLocaleLowerCase("tr-TR").includes(normalizedQuery)).slice(0, 4).map((project) => ({ label: project.name, href: "/projects" })),
+    },
+    {
+      title: "Inbox",
+      items: inboxItems.filter((item) => item.raw_text.toLocaleLowerCase("tr-TR").includes(normalizedQuery)).slice(0, 4).map((item) => ({ label: item.title || item.raw_text.slice(0, 60), href: "/inbox" })),
+    },
+    {
+      title: "Thread’ler",
+      items: threads.filter((thread) => thread.title.toLocaleLowerCase("tr-TR").includes(normalizedQuery)).slice(0, 4).map((thread) => ({ label: thread.title, href: "/inbox" })),
+    },
+    {
+      title: "Entegrasyonlar",
+      items: integrationResults.filter((item) => item.toLocaleLowerCase("tr-TR").includes(normalizedQuery)).map((item) => ({ label: item, href: "/integrations" })),
+    },
+  ].filter((group) => group.items.length);
 
   function runCommand(href: string) {
     setPaletteOpen(false);
@@ -55,6 +88,16 @@ export function AppExperience() {
     window.addEventListener("dailyplanner:celebrate", onCelebrate);
     return () => window.removeEventListener("dailyplanner:celebrate", onCelebrate);
   }, []);
+
+  useEffect(() => {
+    if (!paletteOpen) return;
+    Promise.all([getTasks(), getProjects(), getInboxItems(), getInboxThreads()]).then(([nextTasks, nextProjects, nextItems, nextThreads]) => {
+      setTasks(nextTasks);
+      setProjects(nextProjects);
+      setInboxItems(nextItems);
+      setThreads(nextThreads);
+    });
+  }, [paletteOpen]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -154,7 +197,7 @@ export function AppExperience() {
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Komut ara..."
+                placeholder="Her şeyi ara..."
                 className="min-w-0 flex-1 bg-transparent text-base font-bold text-purple outline-none placeholder:text-purple/45"
               />
               <button onClick={() => setPaletteOpen(false)} className="rounded-xl bg-white/80 px-3 py-2 text-xs font-black text-purple">
@@ -163,7 +206,9 @@ export function AppExperience() {
             </div>
             <div className="mt-3 max-h-[52vh] space-y-2 overflow-y-auto">
               {filteredCommands.length ? (
-                filteredCommands.map((command) => (
+                <div>
+                  <p className="px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-purple/45">Komutlar</p>
+                  {filteredCommands.map((command) => (
                   <button
                     key={command.label}
                     onClick={() => runCommand(command.href)}
@@ -172,12 +217,28 @@ export function AppExperience() {
                     <span>{command.label}</span>
                     {command.hint ? <span className="rounded-full bg-lilac px-3 py-1 text-xs text-purple/75">{command.hint}</span> : null}
                   </button>
-                ))
-              ) : (
+                  ))}
+                </div>
+              ) : null}
+              {searchGroups.map((group) => (
+                <div key={group.title}>
+                  <p className="px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-purple/45">{group.title}</p>
+                  {group.items.map((item) => (
+                    <button
+                      key={`${group.title}-${item.label}`}
+                      onClick={() => runCommand(item.href)}
+                      className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-black transition hover:bg-neon"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+              {!filteredCommands.length && !searchGroups.length ? (
                 <p className="rounded-2xl bg-lilac/55 p-4 text-sm font-bold text-purple/65">
-                  Bu aramada komut bulamadım. Daha kısa bir kelime deneyebilirsin.
+                  Bu aramada sonuç bulamadım. Daha kısa bir kelime deneyebilirsin.
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

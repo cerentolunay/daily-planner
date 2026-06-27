@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ApiTask, createTask } from "../lib/api";
+import { recordActivity } from "../lib/local-storage";
 import { Button, Input, Textarea } from "./ui";
 
 type ExtractedTask = {
@@ -131,6 +132,7 @@ export function InboxComposer() {
     }
 
     setMessage("Görev başarıyla oluşturuldu.");
+    recordActivity("inbox_converted", `${saved.title} inbox’tan göreve dönüştürüldü`);
     setRawText("");
     setExtracted(emptyExtracted);
   }

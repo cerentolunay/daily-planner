@@ -26,27 +26,7 @@ export default async function CalendarPage() {
     urgent: task.priority === "urgent",
   }));
 
-  const visibleTasks = tasks.length
-    ? tasks
-    : [
-        {
-          id: "mock-calendar-1",
-          title: "Codesight sunumunu hazırla",
-          project: "Cyber-Quanta",
-          deadline: "Cuma",
-          priority: "Yüksek" as const,
-          status: "Devam Ediyor" as const,
-        },
-        {
-          id: "mock-calendar-2",
-          title: "DMS dokümantasyonunu tamamla",
-          project: "University",
-          deadline: "Geçen hafta",
-          priority: "Acil" as const,
-          status: "Beklemede" as const,
-          urgent: true,
-        },
-      ];
+  const visibleTasks = tasks;
 
   return (
     <AppShell activePage="calendar">
@@ -73,9 +53,19 @@ export default async function CalendarPage() {
         </Card>
 
         <div className="grid gap-5 xl:grid-cols-2">
-          {visibleTasks.map((task) => (
-            <TaskCard key={task.id} {...task} />
-          ))}
+          {visibleTasks.length ? (
+            visibleTasks.map((task) => (
+              <TaskCard key={task.id} {...task} />
+            ))
+          ) : (
+            <div className="rounded-[30px] border border-white/80 bg-white/75 p-8 text-center text-purple shadow-glow xl:col-span-2">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-neon text-3xl">☀️</div>
+              <h2 className="mt-5 text-2xl font-black">Bu hafta sakin görünüyor</h2>
+              <p className="mx-auto mt-2 max-w-md text-sm font-bold leading-6 text-purple/65">
+                Deadline eklediğin görevler burada belirecek.
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </AppShell>

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { priorityLabels } from "../constants/labels";
 import { PlannedTask } from "../lib/planner";
 import { updateTask } from "../lib/api";
+import { celebrate, recordActivity } from "../lib/local-storage";
 import { Button, Card } from "./ui";
 import { PriorityBadge } from "./badges";
 
@@ -16,6 +17,10 @@ export function FocusClient({ tasks }: { tasks: PlannedTask[] }) {
     if (!selectedTask) return;
     const saved = await updateTask(selectedTask.id, { status: "done" });
     setMessage(saved ? "Görev tamamlandı olarak işaretlendi." : "Görev güncellenemedi.");
+    if (saved) {
+      recordActivity("task_done", `${selectedTask.title} odak modunda tamamlandı`);
+      celebrate("Odak tamam! Bir adım daha hafifledin 🎉");
+    }
   }
 
   return (
@@ -38,7 +43,9 @@ export function FocusClient({ tasks }: { tasks: PlannedTask[] }) {
               </button>
             ))
           ) : (
-            <p className="rounded-2xl bg-white/70 p-4 text-sm font-bold text-purple/65">Bugün için odak görevi yok.</p>
+            <div className="rounded-3xl bg-white/70 p-5 text-sm font-bold leading-6 text-purple/65">
+              Bugün için odak görevi yok. Küçük bir görev ekleyip günün ritmini başlatabilirsin.
+            </div>
           )}
         </div>
       </Card>
@@ -65,7 +72,11 @@ export function FocusClient({ tasks }: { tasks: PlannedTask[] }) {
             {message ? <p className="mt-4 rounded-2xl bg-neon/55 p-3 text-sm font-bold text-purple">{message}</p> : null}
           </>
         ) : (
-          <p className="rounded-3xl bg-white/70 p-8 text-center font-bold text-purple">Bugünün odağı hazır değil.</p>
+          <div className="rounded-3xl bg-white/70 p-8 text-center text-purple">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-yellow text-3xl">✨</div>
+            <p className="mt-5 font-black">Bugünün odağı hazır değil.</p>
+            <p className="mt-2 text-sm font-bold text-purple/65">Yeni bir görev eklediğinde burada odak akışı oluşacak.</p>
+          </div>
         )}
       </Card>
     </div>

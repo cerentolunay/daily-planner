@@ -8,8 +8,12 @@ from ...services.task_service import (
     create_task,
     update_task,
     delete_task,
+    create_subtask,
+    update_subtask,
+    get_subtask,
+    delete_subtask,
 )
-from ...schemas.task import TaskCreate, TaskRead, TaskUpdate
+from ...schemas.task import SubtaskCreate, SubtaskRead, SubtaskUpdate, TaskCreate, TaskRead, TaskUpdate
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -47,3 +51,30 @@ def delete_existing_task(task_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     delete_task(db, task)
     return {"detail": "Task deleted"}
+
+
+@router.post("/{task_id}/subtasks", response_model=SubtaskRead)
+def create_task_subtask(task_id: UUID, subtask_in: SubtaskCreate, db: Session = Depends(get_db)):
+    task = get_task(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return create_subtask(db, task, subtask_in.title, subtask_in.position)
+
+
+@router.patch("/{task_id}/subtasks/{subtask_id}", response_model=SubtaskRead)
+def update_task_subtask(task_id: UUID, subtask_id: UUID, subtask_in: SubtaskUpdate, db: Session = Depends(get_db)):
+    task = get_task(db, task_id)
+    subtask = get_subtask(db, subtask_id)
+    if not task or not subtask or subtask.task_id != task.id:
+        raise HTTPException(status_code=404, detail="Subtask not found")
+    return update_subtask(db, subtask, subtask_in.model_dump(exclude_unset=True))
+
+
+@router.delete("/{task_id}/subtasks/{subtask_id}")
+def delete_task_subtask(task_id: UUID, subtask_id: UUID, db: Session = Depends(get_db)):
+    task = get_task(db, task_id)
+    subtask = get_subtask(db, subtask_id)
+    if not task or not subtask or subtask.task_id != task.id:
+        raise HTTPException(status_code=404, detail="Subtask not found")
+    delete_subtask(db, subtask)
+    return {"detail": "Subtask deleted"}

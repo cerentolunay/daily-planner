@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ApiProject, ApiTask, createProject, deleteProject } from "../lib/api";
+import { recordActivity } from "../lib/local-storage";
 import { Button, Card, Input } from "./ui";
 import { ProjectCard } from "./ProjectCard";
 
@@ -46,6 +47,7 @@ export function ProjectManager({ initialProjects, tasks }: { initialProjects: Ap
     setName("");
     setDescription("");
     setColor("yellow");
+    recordActivity("project_created", `${saved.name} projesi oluşturuldu`);
     setMessage("Proje başarıyla oluşturuldu.");
   }
 
@@ -95,8 +97,12 @@ export function ProjectManager({ initialProjects, tasks }: { initialProjects: Ap
               );
             })
           ) : (
-            <div className="rounded-3xl bg-white/70 p-8 text-center font-bold text-purple md:col-span-2 xl:col-span-3">
-              Henüz proje yok.
+            <div className="rounded-[30px] border border-white/80 bg-white/75 p-8 text-center text-purple shadow-glow md:col-span-2 xl:col-span-3">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-neon text-3xl">✦</div>
+              <h3 className="mt-5 text-2xl font-black">Henüz proje yok</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm font-bold leading-6 text-purple/65">
+                İşlerini şirket, okul veya kişisel alanlara ayırarak daha rahat takip edebilirsin.
+              </p>
             </div>
           )}
         </div>

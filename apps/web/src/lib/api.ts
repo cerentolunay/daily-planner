@@ -10,6 +10,19 @@ export type ApiTask = {
   status: "todo" | "in_progress" | "waiting" | "done" | "cancelled";
   source_type: string;
   source_text?: string | null;
+  source_thread_id?: string | null;
+  source_inbox_item_id?: string | null;
+  created_at: string;
+  updated_at: string;
+  subtasks?: ApiSubtask[];
+};
+
+export type ApiSubtask = {
+  id: string;
+  task_id: string;
+  title: string;
+  is_completed: boolean;
+  position: number;
   created_at: string;
   updated_at: string;
 };
@@ -26,13 +39,50 @@ export type ApiProject = {
 export type ApiInboxItem = {
   id: string;
   source_type: string;
+  content_type: "text" | "url" | "file" | "image" | "voice" | "note";
   raw_text: string;
+  title?: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
+  metadata_json?: Record<string, unknown> | null;
   detected_title?: string | null;
   detected_deadline?: string | null;
   detected_project?: string | null;
   detected_priority?: string | null;
-  status: "pending" | "converted" | "dismissed";
+  status: "unprocessed" | "analyzed" | "converted" | "dismissed" | "archived" | "pending";
+  thread_id?: string | null;
   created_at: string;
+  updated_at?: string | null;
+};
+
+export type ApiInboxThread = {
+  id: string;
+  title: string;
+  summary?: string | null;
+  project_hint?: string | null;
+  deadline_hint?: string | null;
+  priority_hint?: string | null;
+  confidence: number;
+  status: "open" | "reviewed" | "converted" | "archived";
+  created_at: string;
+  updated_at: string;
+  items: ApiInboxItem[];
+};
+
+export type ApiTaskDraft = {
+  id: string;
+  thread_id?: string | null;
+  title: string;
+  description?: string | null;
+  project_hint?: string | null;
+  deadline?: string | null;
+  priority: ApiTask["priority"];
+  status: ApiTask["status"];
+  confidence: number;
+  analysis_json?: Record<string, unknown> | null;
+  subtasks_json?: string[] | null;
+  created_at: string;
+  updated_at: string;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -90,6 +140,14 @@ export function getInboxItems() {
   return apiFetch<ApiInboxItem>("/inbox/");
 }
 
+export function getInboxThreads() {
+  return apiFetch<ApiInboxThread>("/inbox/threads");
+}
+
+export function getTaskDrafts() {
+  return apiFetch<ApiTaskDraft>("/task-drafts/");
+}
+
 export const priorityLabel = priorityLabels;
 export const statusLabel = statusLabels;
 
@@ -102,6 +160,30 @@ export type TaskPayload = {
   status?: ApiTask["status"];
   source_type?: string;
   source_text?: string | null;
+  source_thread_id?: string | null;
+  source_inbox_item_id?: string | null;
+  subtasks?: Array<{ title: string; is_completed?: boolean; position?: number }>;
+};
+
+export type InboxPayload = {
+  source_type?: string;
+  content_type?: ApiInboxItem["content_type"];
+  raw_text: string;
+  title?: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
+  status?: string;
+  metadata_json?: Record<string, unknown> | null;
+};
+
+export type ThreadPayload = {
+  title: string;
+  summary?: string | null;
+  project_hint?: string | null;
+  priority_hint?: string | null;
+  confidence?: number;
+  status?: string;
+  item_ids?: string[];
 };
 
 export type ProjectPayload = {
@@ -127,6 +209,74 @@ export function updateTask(taskId: string, payload: Partial<TaskPayload>) {
 export function deleteTask(taskId: string) {
   return apiJson<{ detail: string }>(`/tasks/${taskId}`, {
     method: "DELETE",
+  });
+}
+
+export function createSubtask(taskId: string, payload: { title: string; position?: number }) {
+  return apiJson<ApiSubtask>(`/tasks/${taskId}/subtasks`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateSubtask(taskId: string, subtaskId: string, payload: Partial<Pick<ApiSubtask, "title" | "is_completed" | "position">>) {
+  return apiJson<ApiSubtask>(`/tasks/${taskId}/subtasks/${subtaskId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteSubtask(taskId: string, subtaskId: string) {
+  return apiJson<{ detail: string }>(`/tasks/${taskId}/subtasks/${subtaskId}`, {
+    method: "DELETE",
+  });
+}
+
+export function createInboxItem(payload: InboxPayload) {
+  return apiJson<ApiInboxItem>("/inbox/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateInboxItem(itemId: string, payload: Partial<InboxPayload>) {
+  return apiJson<ApiInboxItem>(`/inbox/${itemId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteInboxItem(itemId: string) {
+  return apiJson<{ detail: string }>(`/inbox/${itemId}`, {
+    method: "DELETE",
+  });
+}
+
+export function createInboxThread(payload: ThreadPayload) {
+  return apiJson<ApiInboxThread>("/inbox/threads", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function analyzeInboxThread(threadId: string) {
+  return apiJson<ApiTaskDraft>(`/inbox/threads/${threadId}/analyze`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export function convertTaskDraft(draftId: string) {
+  return apiJson<ApiTask>(`/task-drafts/${draftId}/convert-to-task`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export function updateTaskDraft(draftId: string, payload: Partial<ApiTaskDraft>) {
+  return apiJson<ApiTaskDraft>(`/task-drafts/${draftId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
   });
 }
 
