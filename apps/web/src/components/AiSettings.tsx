@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Input } from "./ui";
+import { Select } from "./ui/Select";
 
 type AiPreferences = {
   enabled: boolean;
@@ -30,6 +31,11 @@ const defaults: AiPreferences = {
   confidenceThreshold: "70",
   dailyLimit: "20",
 };
+
+const providerOptions = [
+  { value: "mock", label: "Mock" },
+  { value: "gemini", label: "Gemini" },
+] satisfies Array<{ value: AiPreferences["provider"]; label: string }>;
 
 export function AiSettings() {
   const [preferences, setPreferences] = useState(defaults);
@@ -70,14 +76,11 @@ export function AiSettings() {
       </div>
       <label className="block space-y-2 font-bold text-purple">
         <span>Provider</span>
-        <select
+        <Select
           value={preferences.provider}
-          onChange={(event) => update({ provider: event.target.value as AiPreferences["provider"] })}
-          className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none"
-        >
-          <option value="mock">Mock</option>
-          <option value="gemini">Gemini</option>
-        </select>
+          onChange={(provider) => update({ provider })}
+          options={providerOptions}
+        />
       </label>
       <label className="block space-y-2 font-bold text-purple">
         <span>AI confidence eşiği</span>

@@ -5,6 +5,7 @@ import { priorityLabels, sortLabels, statusLabels, taskFilterLabels } from "../c
 import { ApiProject, ApiTask, createSubtask, deleteSubtask, createTask, deleteTask, getProjects, getTasks, updateSubtask, updateTask } from "../lib/api";
 import { celebrate, recordActivity, readJson, storageKeys, writeJson } from "../lib/local-storage";
 import { Button, Card, Input } from "./ui";
+import { Select } from "./ui/Select";
 import { PriorityBadge, StatusBadge } from "./badges";
 
 type UiTask = ApiTask & {
@@ -36,6 +37,21 @@ const priorityWeight: Record<ApiTask["priority"], number> = {
   medium: 2,
   low: 1,
 };
+
+const statusOptions = (Object.entries(statusLabels) as Array<[ApiTask["status"], string]>).map(([value, label]) => ({
+  value,
+  label,
+}));
+
+const priorityOptions = (Object.entries(priorityLabels) as Array<[ApiTask["priority"], string]>).map(([value, label]) => ({
+  value,
+  label,
+}));
+
+const sortOptions = (Object.entries(sortLabels) as Array<[keyof typeof sortLabels, string]>).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 function isToday(deadline?: string | null) {
   if (!deadline) return false;
@@ -272,17 +288,11 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
       <Card className="p-5 md:p-6">
         <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
           <Input data-task-search="true" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Görevlerde ara..." />
-          <select
+          <Select
             value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as keyof typeof sortLabels)}
-            className="rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm font-bold text-purple outline-none"
-          >
-            {Object.entries(sortLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            onChange={(nextValue) => setSortBy(nextValue)}
+            options={sortOptions}
+          />
         </div>
 
         <div className="my-5 flex flex-wrap gap-3">
@@ -321,17 +331,12 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-                  <select
+                  <Select
                     value={task.status}
-                    onChange={(event) => changeStatus(task, event.target.value as ApiTask["status"])}
-                    className="rounded-2xl border border-purple/15 bg-lilac/45 px-4 py-3 text-sm font-bold text-purple outline-none"
-                  >
-                    {(["todo", "in_progress", "waiting", "done"] as const).map((status) => (
-                      <option key={status} value={status}>
-                        {statusLabels[status]}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(nextStatus) => changeStatus(task, nextStatus)}
+                    options={statusOptions}
+                    triggerClassName="bg-lilac/45"
+                  />
                   <div className="flex flex-wrap gap-2">
                     <Button variant="ghost" onClick={() => startEdit(task)}>Düzenle</Button>
                     <Button variant="ghost" onClick={() => changeStatus(task, "done")}>Tamamla</Button>
@@ -403,19 +408,14 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
         <div className="mt-5 space-y-3">
           <Input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Başlık" />
           <Input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Açıklama" />
-          <select value={form.project_id} onChange={(event) => setForm({ ...form, project_id: event.target.value })} className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none">
-            <option value="">Proje yok</option>
-            {projectList.map((project) => (
-              <option key={project.id} value={project.id}>{project.name}</option>
-            ))}
-          </select>
+          <Select
+            value={form.project_id}
+            onChange={(projectId) => setForm({ ...form, project_id: projectId })}
+            options={[{ value: "", label: "Proje yok" }, ...projectList.map((project) => ({ value: project.id, label: project.name }))]}
+          />
           <Input type="datetime-local" value={form.deadline} onChange={(event) => setForm({ ...form, deadline: event.target.value })} />
-          <select value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value as ApiTask["priority"] })} className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none">
-            {Object.entries(priorityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-          <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ApiTask["status"] })} className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none">
-            {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          <Select value={form.priority} onChange={(priority) => setForm({ ...form, priority })} options={priorityOptions} />
+          <Select value={form.status} onChange={(status) => setForm({ ...form, status })} options={statusOptions} />
           <Button className="w-full" onClick={saveTask} disabled={isSaving}>
             {isSaving ? "Kaydediliyor" : form.id ? "Güncelle" : "Görev Oluştur"}
           </Button>

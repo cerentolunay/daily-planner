@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ApiTask, createTask } from "../lib/api";
 import { recordActivity } from "../lib/local-storage";
 import { Button, Input, Textarea } from "./ui";
+import { Select } from "./ui/Select";
 
 type ExtractedTask = {
   title: string;
@@ -20,6 +21,20 @@ const emptyExtracted: ExtractedTask = {
   priority: "medium",
   status: "todo",
 };
+
+const priorityOptions = [
+  { value: "low", label: "Düşük" },
+  { value: "medium", label: "Orta" },
+  { value: "high", label: "Yüksek" },
+  { value: "urgent", label: "Acil" },
+] satisfies Array<{ value: ApiTask["priority"]; label: string }>;
+
+const statusOptions = [
+  { value: "todo", label: "Yapılacak" },
+  { value: "in_progress", label: "Devam Ediyor" },
+  { value: "waiting", label: "Beklemede" },
+  { value: "done", label: "Tamamlandı" },
+] satisfies Array<{ value: ApiTask["status"]; label: string }>;
 
 function toDateTimeInput(keyword: "today" | "tomorrow" | "week" | "next-week" | number) {
   const date = new Date();
@@ -160,18 +175,8 @@ export function InboxComposer() {
         <Input value={extracted.title} onChange={(event) => setExtracted({ ...extracted, title: event.target.value })} placeholder="Algılanan başlık" />
         <Input value={extracted.project} onChange={(event) => setExtracted({ ...extracted, project: event.target.value })} placeholder="Proje" />
         <Input type="datetime-local" value={extracted.deadline} onChange={(event) => setExtracted({ ...extracted, deadline: event.target.value })} />
-        <select value={extracted.priority} onChange={(event) => setExtracted({ ...extracted, priority: event.target.value as ApiTask["priority"] })} className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none">
-          <option value="low">Düşük</option>
-          <option value="medium">Orta</option>
-          <option value="high">Yüksek</option>
-          <option value="urgent">Acil</option>
-        </select>
-        <select value={extracted.status} onChange={(event) => setExtracted({ ...extracted, status: event.target.value as ApiTask["status"] })} className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none">
-          <option value="todo">Yapılacak</option>
-          <option value="in_progress">Devam Ediyor</option>
-          <option value="waiting">Beklemede</option>
-          <option value="done">Tamamlandı</option>
-        </select>
+        <Select value={extracted.priority} onChange={(priority) => setExtracted({ ...extracted, priority })} options={priorityOptions} />
+        <Select value={extracted.status} onChange={(status) => setExtracted({ ...extracted, status })} options={statusOptions} />
         <Button className="w-full" onClick={saveAsTask} disabled={isSaving || !extracted.title.trim()}>
           {isSaving ? "Kaydediliyor" : "Görev Olarak Kaydet"}
         </Button>

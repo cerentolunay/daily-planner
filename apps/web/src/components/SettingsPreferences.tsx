@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button, Input } from "./ui";
+import { Select } from "./ui/Select";
 
 type Preferences = {
   sidebarCollapsed: boolean;
@@ -24,6 +25,13 @@ const defaultPreferences: Preferences = {
 };
 
 const storageKey = "dailyplanner.preferences";
+
+const priorityOptions = [
+  { value: "low", label: "Düşük" },
+  { value: "medium", label: "Orta" },
+  { value: "high", label: "Yüksek" },
+  { value: "urgent", label: "Acil" },
+] satisfies Array<{ value: Preferences["defaultPriority"]; label: string }>;
 
 export function SettingsPreferences() {
   const [preferences, setPreferences] = useState(defaultPreferences);
@@ -66,16 +74,11 @@ export function SettingsPreferences() {
       <div className="grid gap-3 md:grid-cols-2">
         <label className="space-y-2 font-bold text-purple">
           <span>Varsayılan öncelik</span>
-          <select
+          <Select
             value={preferences.defaultPriority}
-            onChange={(event) => update({ defaultPriority: event.target.value as Preferences["defaultPriority"] })}
-            className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none"
-          >
-            <option value="low">Düşük</option>
-            <option value="medium">Orta</option>
-            <option value="high">Yüksek</option>
-            <option value="urgent">Acil</option>
-          </select>
+            onChange={(defaultPriority) => update({ defaultPriority })}
+            options={priorityOptions}
+          />
         </label>
         <label className="space-y-2 font-bold text-purple">
           <span>Varsayılan deadline saati</span>
