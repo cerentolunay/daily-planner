@@ -25,12 +25,12 @@ from ...services.auth_service import (
     get_user_by_email,
     get_user_by_id,
     normalize_email,
-    send_auth_code_email,
     token_pair,
     update_user_password,
     verify_auth_code,
     verify_password,
 )
+from ...services.email_service import send_auth_code_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

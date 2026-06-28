@@ -3,9 +3,7 @@ import hashlib
 import hmac
 import json
 import secrets
-import smtplib
 from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -201,26 +199,3 @@ def verify_auth_code(db: Session, email: str, purpose: str, code: str) -> tuple[
     auth_code.consumed_at = now
     db.commit()
     return True, "Kod doğrulandı."
-
-
-def send_auth_code_email(email: str, code: str, purpose: str):
-    settings = get_settings()
-    subject = "DailyPlanner doğrulama kodun" if purpose == "email_verification" else "DailyPlanner şifre sıfırlama kodun"
-    body = f"DailyPlanner kodun: {code}\n\nBu kod {settings.auth_code_expire_minutes} dakika geçerlidir."
-
-    if not settings.smtp_host:
-        print(f"[DailyPlanner auth code] to={email} purpose={purpose} code={code}")
-        return
-
-    message = EmailMessage()
-    message["Subject"] = subject
-    message["From"] = f"{settings.smtp_from_name} <{settings.smtp_from_email}>"
-    message["To"] = email
-    message.set_content(body)
-
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
-        if settings.smtp_use_tls:
-            server.starttls()
-        if settings.smtp_username and settings.smtp_password:
-            server.login(settings.smtp_username, settings.smtp_password)
-        server.send_message(message)
