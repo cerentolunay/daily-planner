@@ -22,25 +22,26 @@ export function AIResultPreview({
       </Card>
     );
   }
+  const activeDraft = draft;
 
   async function convert() {
-    await convertTaskDraftToTask(draft.id);
+    await convertTaskDraftToTask(activeDraft.id);
     onConverted?.();
   }
 
   return (
     <Card style={{ gap: 12 }}>
       <Text style={styles.title}>AI bunu şöyle anladı</Text>
-      <Input value={draft.title} onChangeText={(title) => onChange({ ...draft, title })} placeholder="Başlık" />
-      <Textarea value={draft.description || ""} onChangeText={(description) => onChange({ ...draft, description })} placeholder="Açıklama" />
-      <Input value={draft.project_hint || ""} onChangeText={(project_hint) => onChange({ ...draft, project_hint })} placeholder="Proje" />
-      <Text style={styles.badge}>Öncelik: {priorityLabels[draft.priority]} · Durum: {statusLabels[draft.status]}</Text>
-      <Text style={styles.badge}>Confidence %{Math.round(draft.confidence)}</Text>
-      {draft.analysis_json?.cache_hit ? <Text style={styles.notice}>Bu analiz daha önce yapılmıştı, kayıtlı sonuç gösteriliyor.</Text> : null}
-      {draft.analysis_json?.used_fallback ? <Text style={styles.notice}>Gemini yerine hızlı kural tabanlı analiz kullanıldı.</Text> : null}
+      <Input value={activeDraft.title} onChangeText={(title) => onChange({ ...activeDraft, title })} placeholder="Başlık" />
+      <Textarea value={activeDraft.description || ""} onChangeText={(description) => onChange({ ...activeDraft, description })} placeholder="Açıklama" />
+      <Input value={activeDraft.project_hint || ""} onChangeText={(project_hint) => onChange({ ...activeDraft, project_hint })} placeholder="Proje" />
+      <Text style={styles.badge}>Öncelik: {priorityLabels[activeDraft.priority]} · Durum: {statusLabels[activeDraft.status]}</Text>
+      <Text style={styles.badge}>Confidence %{Math.round(activeDraft.confidence)}</Text>
+      {activeDraft.analysis_json?.cache_hit ? <Text style={styles.notice}>Bu analiz daha önce yapılmıştı, kayıtlı sonuç gösteriliyor.</Text> : null}
+      {activeDraft.analysis_json?.used_fallback ? <Text style={styles.notice}>Gemini yerine hızlı kural tabanlı analiz kullanıldı.</Text> : null}
       <View style={styles.subtasks}>
         <Text style={styles.subTitle}>Yapılacaklar</Text>
-        {(draft.subtasks_json || []).map((item, index) => (
+        {(activeDraft.subtasks_json || []).map((item, index) => (
           <Text key={`${item}-${index}`} style={styles.subtask}>• {item}</Text>
         ))}
       </View>
