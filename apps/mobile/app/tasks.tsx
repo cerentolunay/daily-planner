@@ -6,7 +6,7 @@ import { Button, EmptyState } from "../src/components/ui";
 import { getTasks, updateTask } from "../src/lib/api";
 import { ApiTask } from "../src/types";
 
-const filters = ["Tümü", "Bugün", "Geciken", "Tamamlanan"] as const;
+const filters = ["Tümü", "Bugün", "Yarın", "Geciken", "Tamamlanan"] as const;
 
 export default function TasksScreen() {
   const [tasks, setTasks] = useState<ApiTask[]>([]);
@@ -24,6 +24,11 @@ export default function TasksScreen() {
     const now = new Date();
     return tasks.filter((task) => {
       if (filter === "Bugün") return task.deadline && new Date(task.deadline).toDateString() === now.toDateString();
+      if (filter === "Yarın") {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return task.deadline && new Date(task.deadline).toDateString() === tomorrow.toDateString();
+      }
       if (filter === "Geciken") return task.deadline && new Date(task.deadline) < now && task.status !== "done";
       if (filter === "Tamamlanan") return task.status === "done";
       return true;
