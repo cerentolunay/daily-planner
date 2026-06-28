@@ -60,6 +60,14 @@ function isToday(deadline?: string | null) {
   return value.toDateString() === now.toDateString();
 }
 
+function isTomorrow(deadline?: string | null) {
+  if (!deadline) return false;
+  const value = new Date(deadline);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return value.toDateString() === tomorrow.toDateString();
+}
+
 function isOverdue(task: UiTask) {
   return Boolean(task.deadline && new Date(task.deadline) < new Date() && task.status !== "done");
 }
@@ -137,6 +145,7 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
         const matchesFilter =
           filter === "Tümü" ||
           (filter === "Bugün" && isToday(task.deadline)) ||
+          (filter === "Yarın" && isTomorrow(task.deadline)) ||
           (filter === "Yaklaşanlar" && isUpcoming(task)) ||
           (filter === "Gecikenler" && isOverdue(task)) ||
           (filter === "Tamamlananlar" && task.status === "done") ||

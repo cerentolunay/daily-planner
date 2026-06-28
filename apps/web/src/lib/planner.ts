@@ -25,6 +25,13 @@ export function isTodayTask(task: ApiTask, now = new Date()) {
   return Boolean(task.deadline && isSameDay(new Date(task.deadline), now));
 }
 
+export function isTomorrowTask(task: ApiTask, now = new Date()) {
+  if (!task.deadline) return false;
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return isSameDay(new Date(task.deadline), tomorrow);
+}
+
 export function isUpcomingTask(task: ApiTask, days = 7, now = new Date()) {
   if (!task.deadline) return false;
   const value = new Date(task.deadline).getTime();

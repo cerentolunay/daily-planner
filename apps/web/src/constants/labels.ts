@@ -28,7 +28,7 @@ export const statusValues = {
   "İptal Edildi": "cancelled",
 } as const;
 
-export const taskFilterLabels = ["Tümü", "Bugün", "Yaklaşanlar", "Gecikenler", "Tamamlananlar", "Acil"] as const;
+export const taskFilterLabels = ["Tümü", "Bugün", "Yarın", "Yaklaşanlar", "Gecikenler", "Tamamlananlar", "Acil"] as const;
 
 export const sortLabels = {
   deadline: "Son tarihe göre",
