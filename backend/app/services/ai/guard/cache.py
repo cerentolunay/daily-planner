@@ -1,5 +1,5 @@
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -24,7 +24,7 @@ class CacheGuard:
         if not self.enabled:
             return None
         row = db.query(AIAnalysisCache).filter(AIAnalysisCache.cache_key == cache_key).first()
-        if not row or row.expires_at < datetime.utcnow():
+        if not row or self._as_naive_utc(row.expires_at) < datetime.utcnow():
             return None
         result = TaskExtractionResult.model_validate(row.result_json)
         result.cache_hit = True
@@ -35,13 +35,23 @@ class CacheGuard:
             return
         payload = result.model_dump(mode="json")
         payload["cache_hit"] = False
-        row = AIAnalysisCache(
-            cache_key=cache_key,
-            provider=provider,
-            model=model,
-            input_hash=input_hash(normalized_input),
-            result_json=payload,
-            expires_at=datetime.utcnow() + timedelta(days=self.ttl_days),
-        )
-        db.add(row)
+        row = db.query(AIAnalysisCache).filter(AIAnalysisCache.cache_key == cache_key).first()
+        if row:
+            row.result_json = payload
+            row.expires_at = datetime.utcnow() + timedelta(days=self.ttl_days)
+        else:
+            row = AIAnalysisCache(
+                cache_key=cache_key,
+                provider=provider,
+                model=model,
+                input_hash=input_hash(normalized_input),
+                result_json=payload,
+                expires_at=datetime.utcnow() + timedelta(days=self.ttl_days),
+            )
+            db.add(row)
         db.commit()
+
+    def _as_naive_utc(self, value: datetime) -> datetime:
+        if value.tzinfo:
+            return value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value

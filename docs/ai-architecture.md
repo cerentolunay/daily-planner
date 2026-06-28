@@ -23,6 +23,8 @@ Provider'lar `AIProvider` interface'ini uygular:
 - `MockProvider`: rule-based analiz motorunu AI formatında döndürür.
 - `GeminiProvider`: backend env içindeki `GEMINI_API_KEY` ile Gemini API çağrısı yapar.
 
+Yerel Docker Compose varsayılanı `AI_PROVIDER=mock` olarak ayarlanmıştır. Gerçek Gemini çağrısı için `.env` içinde `AI_PROVIDER=gemini` ve geçerli `GEMINI_API_KEY` tanımlanmalıdır.
+
 ## Guard Layer
 
 - Quota: günlük analiz limitini kontrol eder.

@@ -18,8 +18,22 @@ services:
   backend:
     build:
       context: ./backend
-    env_file:
-      - .env.example
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://dailyplanner:dailyplanner@postgres:5432/dailyplanner}
+      POSTGRES_USER: ${POSTGRES_USER:-dailyplanner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dailyplanner}
+      POSTGRES_DB: ${POSTGRES_DB:-dailyplanner}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      AI_ENABLED: ${AI_ENABLED:-true}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      AI_DAILY_QUOTA_FREE: ${AI_DAILY_QUOTA_FREE:-20}
+      AI_DAILY_QUOTA_PRO: ${AI_DAILY_QUOTA_PRO:-300}
+      AI_RATE_LIMIT_PER_MINUTE: ${AI_RATE_LIMIT_PER_MINUTE:-10}
+      AI_CACHE_ENABLED: ${AI_CACHE_ENABLED:-true}
+      AI_FALLBACK_ENABLED: ${AI_FALLBACK_ENABLED:-true}
+      AI_MAX_MESSAGES_PER_THREAD: ${AI_MAX_MESSAGES_PER_THREAD:-10}
+      AI_MAX_CHARS_PER_REQUEST: ${AI_MAX_CHARS_PER_REQUEST:-8000}
     volumes:
       - ./backend:/app
     ports:

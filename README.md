@@ -64,6 +64,8 @@ AI_CACHE_ENABLED=true
 AI_FALLBACK_ENABLED=true
 ```
 
+MVP stabilizasyonunda Docker Compose `.env.example` dosyasını otomatik runtime env olarak yüklemez. Varsayılan Docker çalıştırması güvenli şekilde `AI_PROVIDER=mock` ve boş `GEMINI_API_KEY` ile açılır. Gerçek Gemini kullanmak için repo kökünde `.env` oluşturup `AI_PROVIDER=gemini` ve gerçek `GEMINI_API_KEY` değerini girin.
+
 Docker dışından backend çalıştırırken `backend/.env` içinde PostgreSQL host/port değerini lokal bağlantıya göre ayarlayın:
 
 ```env
@@ -134,6 +136,14 @@ Test 4 - Cache: aynı AI request'i ikinci kez gönder. Beklenen: `cache_hit: tru
 Test 5 - Fallback: `GEMINI_API_KEY` boş bırak. Beklenen: `used_fallback: true`.
 
 Test 6 - Frontend: Inbox'ta mesajları seç, AI ile analiz et, preview gör, TaskDraft oluştur ve Task'a çevir.
+
+## MVP Stabilization Checklist
+
+- Backend, web ve mobile env değerleri ayrı tutulur; AI key sadece backend tarafında kullanılır.
+- Inbox analiz akışı doğrudan task oluşturmaz: `Inbox -> AI Preview -> TaskDraft -> Task + Subtasks`.
+- Docker Compose varsayılanları yerel geliştirme için mock AI fallback ile çalışır.
+- Web build ve backend Docker import kontrolü yeşil olmalıdır.
+- Mobile Expo uygulaması backend URL'sini ayarlardan değiştirebilir; Android emulatorde genellikle `http://10.0.2.2:8000` gerekir.
 
 ## Mobile Manual Test Plan
 

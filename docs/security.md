@@ -5,10 +5,13 @@
 Gemini API key backend environment değişkeni olarak saklanır:
 
 ```env
-GEMINI_API_KEY=your_api_key_here
+AI_PROVIDER=gemini
+GEMINI_API_KEY=real_key_here
 ```
 
 Bu key frontend'e gönderilmez ve `NEXT_PUBLIC_` prefix'i ile tanımlanmaz.
+
+Docker Compose varsayılanı `AI_PROVIDER=mock` ve boş `GEMINI_API_KEY` ile gelir. Böylece yerel MVP çalıştırması gerçek provider key'i olmadan fallback/mock akışla güvenli şekilde açılır.
 
 ## AI Request Scope
 
