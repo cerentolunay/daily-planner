@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text } from "react-native";
 import { colors } from "../src/constants/colors";
 import { ANDROID_EMULATOR_BACKEND_URL } from "../src/lib/config";
-import { getBackendUrl, setBackendUrl } from "../src/lib/storage";
+import { clearAuthTokens, getBackendUrl, setBackendUrl } from "../src/lib/storage";
 import { getTasks } from "../src/lib/api";
 import { MobileShell } from "../src/components/MobileShell";
 import { Button, Card, Input } from "../src/components/ui";
@@ -24,6 +24,11 @@ export default function SettingsScreen() {
     await setBackendUrl(url);
     const tasks = await getTasks();
     setMessage(`Backend bağlantısı denendi. ${tasks.length} görev okundu.`);
+  }
+
+  async function logout() {
+    await clearAuthTokens();
+    setMessage("Oturum kapatıldı.");
   }
 
   return (
@@ -49,6 +54,12 @@ export default function SettingsScreen() {
         <Text style={styles.title}>Mobil Capture</Text>
         <Text style={styles.text}>Görsel yakala, ses kaydı ve dosya ekleme sonraki sürümlerde eklenecek.</Text>
         <Text style={styles.badge}>Bildirimler: Yakında</Text>
+      </Card>
+
+      <Card style={{ gap: 10 }}>
+        <Text style={styles.title}>Oturum</Text>
+        <Text style={styles.text}>Access token süresi dolarsa mobile app refresh token ile oturumu yeniler.</Text>
+        <Button variant="secondary" onPress={logout}>Çıkış Yap</Button>
       </Card>
     </MobileShell>
   );

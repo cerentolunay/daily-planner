@@ -21,7 +21,19 @@ class Settings(BaseSettings):
     ai_max_messages_per_thread: int = 10
     ai_max_chars_per_request: int = 8000
     jwt_secret_key: str = "dailyplanner-dev-secret-change-me"
-    jwt_access_token_expire_minutes: int = 60 * 24 * 7
+    jwt_access_token_expire_minutes: int = 60
+    jwt_refresh_token_expire_minutes: int = 60 * 24 * 30
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: str = "noreply@dailyplanner.local"
+    smtp_from_name: str = "DailyPlanner"
+    smtp_use_tls: bool = True
+    auth_code_expire_minutes: int = 10
+    auth_code_resend_seconds: int = 60
+    auth_code_max_attempts: int = 5
+    auth_code_lock_minutes: int = 15
 
 
 @lru_cache()

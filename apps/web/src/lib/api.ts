@@ -96,18 +96,21 @@ export type ApiUser = {
   id: string;
   name: string;
   email: string;
+  is_email_verified: boolean;
   created_at: string;
   updated_at: string;
 };
 
 export type AuthResponse = {
   access_token: string;
+  refresh_token: string;
   token_type: "bearer";
   user: ApiUser;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const TOKEN_KEY = "dailyplanner.accessToken";
+const REFRESH_TOKEN_KEY = "dailyplanner.refreshToken";
 
 export function getAuthToken() {
   if (typeof window === "undefined") return null;
@@ -119,9 +122,21 @@ export function setAuthToken(token: string) {
   window.localStorage.setItem(TOKEN_KEY, token);
 }
 
+export function getRefreshToken() {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function setAuthTokens(accessToken: string, refreshToken: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(TOKEN_KEY, accessToken);
+  window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+}
+
 export function clearAuthToken() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(TOKEN_KEY);
+  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 function authHeaders(headers?: HeadersInit): HeadersInit {
@@ -145,11 +160,7 @@ function apiErrorMessage(payload: unknown, fallback: string) {
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T[]> {
   try {
-    const response = await fetch(`${API_URL}${path}`, {
-      cache: "no-store",
-      ...options,
-      headers: authHeaders(options?.headers),
-    });
+    const response = await requestWithRefresh(path, { cache: "no-store", ...options });
 
     if (!response.ok) {
       return [];
@@ -163,11 +174,11 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T[]> {
 
 async function apiJson<T>(path: string, options: RequestInit): Promise<T | null> {
   try {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await requestWithRefresh(path, {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...authHeaders(options.headers),
+        ...(options.headers || {}),
       },
     });
 
@@ -187,11 +198,11 @@ async function apiJson<T>(path: string, options: RequestInit): Promise<T | null>
 
 async function apiJsonResult<T>(path: string, options: RequestInit): Promise<{ data: T | null; error?: string }> {
   try {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await requestWithRefresh(path, {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...authHeaders(options.headers),
+        ...(options.headers || {}),
       },
     });
     const payload = response.status === 204 ? null : await response.json();
@@ -204,15 +215,73 @@ async function apiJsonResult<T>(path: string, options: RequestInit): Promise<{ d
   }
 }
 
+async function requestWithRefresh(path: string, options: RequestInit = {}, allowRefresh = true): Promise<Response> {
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: authHeaders(options.headers),
+  });
+  if (response.status !== 401 || !allowRefresh) {
+    return response;
+  }
+
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    clearAuthToken();
+    return response;
+  }
+
+  const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+  if (!refreshResponse.ok) {
+    clearAuthToken();
+    return response;
+  }
+
+  const payload = (await refreshResponse.json()) as AuthResponse;
+  setAuthTokens(payload.access_token, payload.refresh_token);
+  return requestWithRefresh(path, options, false);
+}
+
 export function registerUser(payload: { name: string; email: string; password: string }) {
-  return apiJsonResult<AuthResponse>("/auth/register", {
+  return apiJsonResult<{ detail: string }>("/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
+export function verifyEmail(payload: { email: string; code: string }) {
+  return apiJsonResult<{ detail: string }>("/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resendVerification(email: string) {
+  return apiJsonResult<{ detail: string }>("/auth/resend-verification", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
 export function loginUser(payload: { email: string; password: string }) {
   return apiJsonResult<AuthResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function forgotPassword(email: string) {
+  return apiJsonResult<{ detail: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(payload: { email: string; code: string; new_password: string }) {
+  return apiJsonResult<{ detail: string }>("/auth/reset-password", {
     method: "POST",
     body: JSON.stringify(payload),
   });

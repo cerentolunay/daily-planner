@@ -100,7 +100,7 @@ Beklenen yanıt:
 
 ### Auth manual test
 
-Yeni kullanıcı oluştur:
+Yeni kullanıcı oluştur ve doğrulama kodu gönder:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/auth/register \
@@ -108,12 +108,44 @@ curl -X POST http://127.0.0.1:8000/auth/register \
   -d "{\"name\":\"Cerem\",\"email\":\"cerem@example.com\",\"password\":\"dailyplanner123\"}"
 ```
 
-Giriş yap:
+SMTP ayarlı değilse development ortamında kod backend log'una yazılır. Kod doğrula:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/verify-email \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"cerem@example.com\",\"code\":\"123456\"}"
+```
+
+Giriş yap ve access/refresh token al:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/auth/login \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"cerem@example.com\",\"password\":\"dailyplanner123\"}"
+```
+
+Access token yenile:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d "{\"refresh_token\":\"<refresh_token>\"}"
+```
+
+Şifre sıfırlama kodu gönder:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"cerem@example.com\"}"
+```
+
+Yeni şifre belirle:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"cerem@example.com\",\"code\":\"123456\",\"new_password\":\"newpassword123\"}"
 ```
 
 Korunan endpoint örneği:

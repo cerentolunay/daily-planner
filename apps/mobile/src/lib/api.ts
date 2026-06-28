@@ -1,21 +1,45 @@
-import { ApiInboxItem, ApiInboxThread, ApiProject, ApiTask, ApiTaskDraft, CaptureQueueItem } from "../types";
-import { getBackendUrl } from "./storage";
+import { ApiInboxItem, ApiInboxThread, ApiProject, ApiTask, ApiTaskDraft, ApiUser, AuthResponse, CaptureQueueItem } from "../types";
+import { clearAuthTokens, getAccessToken, getBackendUrl, getRefreshToken, setAuthTokens } from "./storage";
 
-async function request<T>(path: string, options?: RequestInit): Promise<T | null> {
+async function request<T>(path: string, options?: RequestInit, allowRefresh = true): Promise<T | null> {
   try {
     const baseUrl = await getBackendUrl();
+    const token = await getAccessToken();
     const response = await fetch(`${baseUrl}${path}`, {
+      ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options?.headers || {}),
       },
-      ...options,
     });
+    if (response.status === 401 && allowRefresh) {
+      const refreshed = await refreshSession();
+      if (refreshed) return request<T>(path, options, false);
+    }
     if (!response.ok) return null;
     return response.status === 204 ? null : ((await response.json()) as T);
   } catch {
     return null;
   }
+}
+
+async function refreshSession() {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return false;
+  const baseUrl = await getBackendUrl();
+  const response = await fetch(`${baseUrl}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+  if (!response.ok) {
+    await clearAuthTokens();
+    return false;
+  }
+  const payload = (await response.json()) as AuthResponse;
+  await setAuthTokens(payload.access_token, payload.refresh_token);
+  return true;
 }
 
 async function list<T>(path: string): Promise<T[]> {
@@ -24,6 +48,34 @@ async function list<T>(path: string): Promise<T[]> {
 
 export function getTasks() {
   return list<ApiTask>("/tasks/");
+}
+
+export function registerUser(payload: { name: string; email: string; password: string }) {
+  return request<{ detail: string }>("/auth/register", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function verifyEmail(payload: { email: string; code: string }) {
+  return request<{ detail: string }>("/auth/verify-email", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function resendVerification(email: string) {
+  return request<{ detail: string }>("/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) });
+}
+
+export function loginUser(payload: { email: string; password: string }) {
+  return request<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function forgotPassword(email: string) {
+  return request<{ detail: string }>("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
+}
+
+export function resetPassword(payload: { email: string; code: string; new_password: string }) {
+  return request<{ detail: string }>("/auth/reset-password", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function getCurrentUser() {
+  return request<ApiUser>("/auth/me", { method: "GET" });
 }
 
 export function createTask(payload: Partial<ApiTask>) {

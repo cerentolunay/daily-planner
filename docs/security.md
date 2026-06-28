@@ -35,9 +35,13 @@ AI doğrudan task oluşturmaz. Önce `TaskDraft` oluşturulur. Kullanıcı AI Pr
 
 Backend `POST /auth/register`, `POST /auth/login` ve `GET /auth/me` endpointlerini sağlar. Task, Project, Inbox, TaskDraft ve AI endpointleri bearer token ister.
 
+Kayıt akışı e-posta doğrulama kodu gerektirir. `POST /auth/register` kod gönderir, `POST /auth/verify-email` hesabı aktif eder. Şifre sıfırlama `POST /auth/forgot-password` ve `POST /auth/reset-password` üzerinden 6 haneli kodla yapılır.
+
 Task, Project, InboxItem, InboxThread, TaskDraft ve Subtask kayıtları `user_id` ile kullanıcıya bağlanır. Listeleme, okuma, güncelleme ve silme işlemleri sadece oturumdaki kullanıcının kayıtlarını döndürür.
 
 Şifreler düz metin saklanmaz; PBKDF2-SHA256 ile salt'lı hash olarak tutulur. JWT imzası `JWT_SECRET_KEY` environment değişkeninden üretilir.
+
+Access token kısa sürelidir; refresh token `/auth/refresh` ile yeni token pair almak için kullanılır. Logout client tarafında tokenları temizler.
 
 ## Rate Limit ve Quota
 

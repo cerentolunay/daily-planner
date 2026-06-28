@@ -72,3 +72,17 @@ export type CaptureQueueItem = {
   created_at: string;
   metadata_json: Record<string, unknown>;
 };
+
+export type ApiUser = {
+  id: string;
+  name: string;
+  email: string;
+  is_email_verified: boolean;
+};
+
+export type AuthResponse = {
+  access_token: string;
+  refresh_token: string;
+  token_type: "bearer";
+  user: ApiUser;
+};

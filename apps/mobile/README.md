@@ -60,9 +60,29 @@ Expo managed workflow'da Android share target davranışı sınırlı olabilir. 
 
 Manual paste fallback akışı V1 için ana ve güvenli akıştır.
 
+## Auth Flow
+
+Mobil uygulama backend auth endpointlerini kullanır:
+
+1. Kayıt ol.
+2. E-postaya gönderilen 6 haneli kodu doğrula.
+3. Giriş yap.
+4. Access token süresi dolarsa refresh token ile oturum yenilenir.
+5. Ayarlar ekranından çıkış yapılınca tokenlar cihazdan temizlenir.
+
+Şifre sıfırlama akışı mobil giriş ekranında bulunur:
+
+1. Şifremi Unuttum.
+2. E-posta gir.
+3. 6 haneli kodu gir.
+4. Yeni şifre belirle.
+
+Play Store hazırlık checklist'i için `docs/play-store-release.md` dosyasına bak.
+
 ## Security
 
 - Gemini API key mobil uygulamada bulunmaz.
 - Mobil app yalnızca backend endpointlerini çağırır.
 - Kullanıcı paylaşmadan hiçbir WhatsApp mesajı okunmaz.
 - Bekleyen local captures cihazda AsyncStorage ile tutulur.
+- Auth tokenları AsyncStorage içinde tutulur; production sürümde native secure storage değerlendirilmelidir.
