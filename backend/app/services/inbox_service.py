@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session, joinedload
@@ -101,6 +102,34 @@ def analysis_to_draft_payload(result, thread_id: UUID | None = None):
     }
 
 
+def draft_to_mobile_suggestion(draft: TaskDraft):
+    return {
+        "draft_id": str(draft.id),
+        "tasks": [
+            {
+                "title": draft.title,
+                "description": draft.description,
+                "dueDate": draft.deadline.isoformat() if draft.deadline else None,
+                "priority": draft.priority,
+                "tags": [value for value in [draft.project_hint, "smart-inbox"] if value],
+                "subtasks": draft.subtasks_json or [],
+                "confidence": draft.confidence,
+            }
+        ],
+    }
+
+
+def parse_due_date(value):
+    if not value or isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    return None
+
+
 async def analyze_item(db: Session, item: InboxItem):
     result = await AIGateway(db).analyze_text(item.raw_text)
     item.detected_title = result.title
@@ -110,6 +139,8 @@ async def analyze_item(db: Session, item: InboxItem):
     item.status = "analyzed"
     draft = TaskDraft(**analysis_to_draft_payload(result, item.thread_id), user_id=item.user_id)
     db.add(draft)
+    db.flush()
+    item.ai_result_json = draft_to_mobile_suggestion(draft)
     db.commit()
     db.refresh(item)
     db.refresh(draft)
@@ -188,6 +219,41 @@ def convert_draft_to_task(db: Session, draft: TaskDraft):
     db.commit()
     db.refresh(task)
     return task
+
+
+async def convert_item_to_tasks(db: Session, item: InboxItem):
+    draft_id = None
+    if item.ai_result_json and isinstance(item.ai_result_json, dict):
+        draft_id = item.ai_result_json.get("draft_id")
+    draft = get_task_draft(db, UUID(str(draft_id)), item.user_id) if draft_id else None
+    if not draft and item.ai_result_json and isinstance(item.ai_result_json, dict):
+        suggested_tasks = item.ai_result_json.get("tasks")
+        if isinstance(suggested_tasks, list) and suggested_tasks:
+            first_task = suggested_tasks[0] if isinstance(suggested_tasks[0], dict) else {}
+            task = Task(
+                user_id=item.user_id,
+                title=str(first_task.get("title") or item.detected_title or "Paylaşılan mesajdan görev"),
+                description=first_task.get("description") or item.raw_text,
+                deadline=parse_due_date(first_task.get("dueDate")),
+                priority=str(first_task.get("priority") or item.detected_priority or "medium"),
+                status="todo",
+                source_type="smart_inbox",
+                source_text=item.raw_text,
+                source_inbox_item_id=item.id,
+            )
+            db.add(task)
+            item.status = "converted"
+            db.commit()
+            db.refresh(task)
+            return [task]
+    if not draft:
+        draft = await analyze_item(db, item)
+    task = convert_draft_to_task(db, draft)
+    task.source_inbox_item_id = item.id
+    item.status = "converted"
+    db.commit()
+    db.refresh(task)
+    return [task]
 
 
 async def convert_thread_to_task(db: Session, thread: InboxThread):

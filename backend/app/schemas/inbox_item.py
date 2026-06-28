@@ -13,6 +13,7 @@ class InboxItemBase(BaseModel):
     source_name: Optional[str] = None
     source_url: Optional[str] = None
     metadata_json: Optional[dict[str, Any]] = None
+    ai_result_json: Optional[dict[str, Any]] = None
     detected_title: Optional[str] = None
     detected_deadline: Optional[str] = None
     detected_project: Optional[str] = None
@@ -33,6 +34,7 @@ class InboxItemUpdate(BaseModel):
     source_name: Optional[str] = None
     source_url: Optional[str] = None
     metadata_json: Optional[dict[str, Any]] = None
+    ai_result_json: Optional[dict[str, Any]] = None
     detected_title: Optional[str] = None
     detected_deadline: Optional[str] = None
     detected_project: Optional[str] = None
@@ -45,6 +47,7 @@ class InboxItemRead(InboxItemBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    source: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 

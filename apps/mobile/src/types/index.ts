@@ -32,11 +32,30 @@ export type ApiProject = {
 export type ApiInboxItem = {
   id: string;
   source_type: string;
+  source?: "manual" | "whatsapp" | "android_share";
   content_type: "text" | "url" | "file" | "image" | "voice" | "note";
   raw_text: string;
   title?: string | null;
-  status: "unprocessed" | "analyzed" | "converted" | "dismissed" | "archived" | "pending";
+  status: "unprocessed" | "analyzed" | "processed" | "failed" | "converted" | "dismissed" | "archived" | "pending";
   thread_id?: string | null;
+  ai_result_json?: InboxAIResult | null;
+};
+
+export type InboxTaskSuggestion = {
+  title: string;
+  description?: string | null;
+  dueDate?: string | null;
+  priority: Priority;
+  tags?: string[];
+  subtasks?: string[];
+  confidence?: number;
+};
+
+export type InboxAIResult = {
+  draft_id?: string;
+  tasks: InboxTaskSuggestion[];
+  used_fallback?: boolean;
+  error?: string;
 };
 
 export type ApiInboxThread = {

@@ -117,6 +117,18 @@ export function createInboxItem(payload: {
   return request<ApiInboxItem>("/inbox/", { method: "POST", body: JSON.stringify(payload) });
 }
 
+export function createMobileInboxItem(payload: { source: "manual" | "whatsapp" | "android_share"; raw_text: string }) {
+  return request<ApiInboxItem>("/api/inbox/", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function analyzeMobileInboxItem(id: string) {
+  return request<ApiInboxItem>(`/api/inbox/${id}/analyze`, { method: "POST", body: JSON.stringify({}) });
+}
+
+export function convertMobileInboxItemToTasks(id: string) {
+  return request<ApiTask[]>(`/api/inbox/${id}/convert-to-tasks`, { method: "POST", body: JSON.stringify({}) });
+}
+
 export function analyzeInboxItem(id: string) {
   return request<ApiTaskDraft>(`/inbox/${id}/analyze`, { method: "POST", body: JSON.stringify({}) });
 }

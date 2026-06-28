@@ -18,6 +18,7 @@ class InboxItem(Base):
     source_name = Column(String(120), nullable=True)
     source_url = Column(Text, nullable=True)
     metadata_json = Column(JSON, nullable=True)
+    ai_result_json = Column(JSON, nullable=True)
     detected_title = Column(String(255), nullable=True)
     detected_deadline = Column(String(120), nullable=True)
     detected_project = Column(String(120), nullable=True)
@@ -29,6 +30,10 @@ class InboxItem(Base):
 
     user = relationship("User", back_populates="inbox_items")
     thread = relationship("InboxThread", back_populates="items")
+
+    @property
+    def source(self):
+        return self.source_type
 
 
 class InboxThread(Base):

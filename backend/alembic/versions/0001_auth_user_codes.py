@@ -51,12 +51,14 @@ def upgrade():
     for table in ["projects", "tasks", "subtasks", "inbox_items", "inbox_threads", "task_drafts"]:
         op.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS user_id UUID")
         op.execute(f"CREATE INDEX IF NOT EXISTS ix_{table}_user_id ON {table} (user_id)")
+    op.execute("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS ai_result_json JSONB")
 
 
 def downgrade():
     for table in ["projects", "tasks", "subtasks", "inbox_items", "inbox_threads", "task_drafts"]:
         op.execute(f"DROP INDEX IF EXISTS ix_{table}_user_id")
         op.execute(f"ALTER TABLE {table} DROP COLUMN IF EXISTS user_id")
+    op.execute("ALTER TABLE inbox_items DROP COLUMN IF EXISTS ai_result_json")
     op.execute("DROP INDEX IF EXISTS ix_auth_codes_purpose")
     op.execute("DROP INDEX IF EXISTS ix_auth_codes_email")
     op.execute("DROP TABLE IF EXISTS auth_codes")

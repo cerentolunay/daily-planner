@@ -24,65 +24,70 @@ Default development URL:
 http://localhost:8000
 ```
 
-Android Emulator genellikle host makineye şu URL ile erişir:
+The app can also read `EXPO_PUBLIC_API_URL` at startup:
+
+```bash
+EXPO_PUBLIC_API_URL=http://10.0.2.2:8000 npx expo start --android
+```
+
+Android Emulator usually reaches the host machine with:
 
 ```txt
 http://10.0.2.2:8000
 ```
 
-Gerçek telefon kullanırken bilgisayarın local IP adresini kullan:
+For a real phone, use your computer's local network IP:
 
 ```txt
 http://192.168.x.x:8000
 ```
 
-Bu değer mobil uygulamada Ayarlar ekranından değiştirilebilir.
+This value can also be changed from the mobile Settings screen.
 
-## Capture Flow
+## WhatsApp Intake Flow
 
-1. WhatsApp mesajını kopyala.
-2. DailyPlanner mobil uygulamasını aç.
-3. Inbox ekranında Yapıştır alanına bırak.
-4. Inbox'a Kaydet.
-5. AI ile Analiz Et.
-6. AI Preview üzerinden TaskDraft gör.
-7. Görev Olarak Kaydet.
+1. Share or copy a WhatsApp message.
+2. DailyPlanner opens the Inbox Intake screen, or you paste manually in Expo Go/web.
+3. Review or edit the raw message.
+4. Tap `Analyze with AI`.
+5. The backend returns task suggestions: title, description, dueDate, priority and tags.
+6. Tap `Create task(s)` to confirm task creation.
+
+Analyze never creates tasks automatically. Task creation only happens after user confirmation.
 
 ## Offline Queue
 
-Backend erişilemezse capture kaybolmaz. Uygulama capture içeriğini AsyncStorage içinde bekleyen kuyruğa alır.
+If the backend cannot be reached, manual capture content is kept in AsyncStorage and can be retried later from the Inbox screen.
 
 ## Android Share Intent
 
-app.json içinde ACTION_SEND için text/plain ve text/* intent filter hazırlığı vardır.
+`app.json` includes an Android `ACTION_SEND` intent filter for `text/plain` and `text/*`, so DailyPlanner can appear in Android's share sheet for shared text.
 
-Expo managed workflow'da Android share target davranışı sınırlı olabilir. Tam production share-to-app deneyimi için Expo prebuild veya custom native module gerekebilir.
-
-Manual paste fallback akışı V1 için ana ve güvenli akıştır.
+Expo Go cannot fully test native Android share target behavior. Use a development build, prebuild, or APK to test the real share sheet flow. Expo Go and web testing should use the paste-message fallback.
 
 ## Auth Flow
 
-Mobil uygulama backend auth endpointlerini kullanır:
+The mobile app uses the backend auth endpoints:
 
-1. Kayıt ol.
-2. E-postaya gönderilen 6 haneli kodu doğrula.
-3. Giriş yap.
-4. Access token süresi dolarsa refresh token ile oturum yenilenir.
-5. Ayarlar ekranından çıkış yapılınca tokenlar cihazdan temizlenir.
+1. Register.
+2. Verify the 6-digit email code.
+3. Login.
+4. Refresh the session when the access token expires.
+5. Logout from Settings to clear stored tokens.
 
-Şifre sıfırlama akışı mobil giriş ekranında bulunur:
+Password reset is available from the mobile auth screen:
 
-1. Şifremi Unuttum.
-2. E-posta gir.
-3. 6 haneli kodu gir.
-4. Yeni şifre belirle.
+1. Forgot password.
+2. Enter email.
+3. Enter the 6-digit code.
+4. Set a new password.
 
-Play Store hazırlık checklist'i için `docs/play-store-release.md` dosyasına bak.
+See `docs/play-store-release.md` for the Play Store preparation checklist.
 
 ## Security
 
-- Gemini API key mobil uygulamada bulunmaz.
-- Mobil app yalnızca backend endpointlerini çağırır.
-- Kullanıcı paylaşmadan hiçbir WhatsApp mesajı okunmaz.
-- Bekleyen local captures cihazda AsyncStorage ile tutulur.
-- Auth tokenları AsyncStorage içinde tutulur; production sürümde native secure storage değerlendirilmelidir.
+- Gemini API key is never stored in the mobile app.
+- Mobile calls only backend endpoints.
+- WhatsApp messages are read only when the user explicitly shares or pastes them.
+- Local pending captures are stored in AsyncStorage.
+- Auth tokens are stored in AsyncStorage for MVP; production should evaluate native secure storage.
