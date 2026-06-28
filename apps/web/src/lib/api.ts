@@ -183,6 +183,8 @@ async function apiJson<T>(path: string, options: RequestInit): Promise<T | null>
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API Error:", response.status, path, errorText);
       return null;
     }
 

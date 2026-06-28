@@ -39,4 +39,6 @@ def create_tables():
     with engine.begin() as connection:
         for table in ["projects", "tasks", "subtasks", "inbox_items", "inbox_threads", "task_drafts"]:
             connection.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS user_id UUID"))
+        connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_thread_id UUID"))
+        connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_inbox_item_id UUID"))
         connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN NOT NULL DEFAULT FALSE"))

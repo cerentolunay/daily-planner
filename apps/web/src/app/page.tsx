@@ -235,7 +235,16 @@ export default async function Home() {
                 </div>
                 <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-purple">Haziran</span>
               </div>
-              <CalendarPreview />
+              <CalendarPreview
+                tasks={apiTasks.map((task) => ({
+                  id: task.id,
+                  title: task.title,
+                  project: task.project_id ? projectMap.get(task.project_id) || "Proje yok" : "Proje yok",
+                  deadline: task.deadline,
+                  priority: task.priority,
+                  status: task.status,
+                }))}
+              />
             </Card>
 
             <Card className="p-6">

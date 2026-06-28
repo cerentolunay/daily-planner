@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-dailyplanner}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dailyplanner}
-      POSTGRES_DB: ${POSTGRES_DB:-dailyplanner}
+      POSTGRES_USER: dailyplanner
+      POSTGRES_PASSWORD: dailyplanner
+      POSTGRES_DB: dailyplanner
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
@@ -19,35 +19,30 @@ services:
     build:
       context: ./backend
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://dailyplanner:dailyplanner@postgres:5432/dailyplanner}
-      POSTGRES_USER: ${POSTGRES_USER:-dailyplanner}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dailyplanner}
-      POSTGRES_DB: ${POSTGRES_DB:-dailyplanner}
-      AI_PROVIDER: ${AI_PROVIDER:-mock}
-      AI_ENABLED: ${AI_ENABLED:-true}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
-      AI_DAILY_QUOTA_FREE: ${AI_DAILY_QUOTA_FREE:-20}
-      AI_DAILY_QUOTA_PRO: ${AI_DAILY_QUOTA_PRO:-300}
-      AI_RATE_LIMIT_PER_MINUTE: ${AI_RATE_LIMIT_PER_MINUTE:-10}
-      AI_CACHE_ENABLED: ${AI_CACHE_ENABLED:-true}
-      AI_FALLBACK_ENABLED: ${AI_FALLBACK_ENABLED:-true}
-      AI_MAX_MESSAGES_PER_THREAD: ${AI_MAX_MESSAGES_PER_THREAD:-10}
-      AI_MAX_CHARS_PER_REQUEST: ${AI_MAX_CHARS_PER_REQUEST:-8000}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dailyplanner-dev-secret-change-me}
-      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
-      JWT_REFRESH_TOKEN_EXPIRE_MINUTES: ${JWT_REFRESH_TOKEN_EXPIRE_MINUTES:-43200}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@dailyplanner.local}
-      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-DailyPlanner}
-      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
-      AUTH_CODE_EXPIRE_MINUTES: ${AUTH_CODE_EXPIRE_MINUTES:-10}
-      AUTH_CODE_RESEND_SECONDS: ${AUTH_CODE_RESEND_SECONDS:-60}
-      AUTH_CODE_MAX_ATTEMPTS: ${AUTH_CODE_MAX_ATTEMPTS:-5}
-      AUTH_CODE_LOCK_MINUTES: ${AUTH_CODE_LOCK_MINUTES:-15}
+      DATABASE_URL: postgresql+psycopg://dailyplanner:dailyplanner@postgres:5432/dailyplanner
+      POSTGRES_USER: dailyplanner
+      POSTGRES_PASSWORD: dailyplanner
+      POSTGRES_DB: dailyplanner
+      AI_PROVIDER: mock
+      AI_ENABLED: "true"
+      GEMINI_MODEL: gemini-1.5-flash
+      AI_DAILY_QUOTA_FREE: "20"
+      AI_DAILY_QUOTA_PRO: "300"
+      AI_RATE_LIMIT_PER_MINUTE: "10"
+      AI_CACHE_ENABLED: "true"
+      AI_FALLBACK_ENABLED: "true"
+      AI_MAX_MESSAGES_PER_THREAD: "10"
+      AI_MAX_CHARS_PER_REQUEST: "8000"
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      JWT_REFRESH_TOKEN_EXPIRE_MINUTES: "43200"
+      SMTP_PORT: "587"
+      SMTP_FROM_EMAIL: noreply@dailyplanner.local
+      SMTP_FROM_NAME: DailyPlanner
+      SMTP_USE_TLS: "true"
+      AUTH_CODE_EXPIRE_MINUTES: "10"
+      AUTH_CODE_RESEND_SECONDS: "60"
+      AUTH_CODE_MAX_ATTEMPTS: "5"
+      AUTH_CODE_LOCK_MINUTES: "15"
     volumes:
       - ./backend:/app
     ports:
