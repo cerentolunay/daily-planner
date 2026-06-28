@@ -31,6 +31,14 @@ AI çıktısı önce validator katmanından geçer:
 
 AI doğrudan task oluşturmaz. Önce `TaskDraft` oluşturulur. Kullanıcı AI Preview ekranında onay verirse task ve subtasks kaydedilir.
 
+## Auth ve Veri İzolasyonu
+
+Backend `POST /auth/register`, `POST /auth/login` ve `GET /auth/me` endpointlerini sağlar. Task, Project, Inbox, TaskDraft ve AI endpointleri bearer token ister.
+
+Task, Project, InboxItem, InboxThread, TaskDraft ve Subtask kayıtları `user_id` ile kullanıcıya bağlanır. Listeleme, okuma, güncelleme ve silme işlemleri sadece oturumdaki kullanıcının kayıtlarını döndürür.
+
+Şifreler düz metin saklanmaz; PBKDF2-SHA256 ile salt'lı hash olarak tutulur. JWT imzası `JWT_SECRET_KEY` environment değişkeninden üretilir.
+
 ## Rate Limit ve Quota
 
 MVP'de in-memory quota ve rate limit uygulanır. Üretim ortamında bu sayaçlar kullanıcı bazlı ve kalıcı bir store üzerinden yönetilmelidir.

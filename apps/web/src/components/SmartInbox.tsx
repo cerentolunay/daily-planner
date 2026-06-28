@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   analyzeInboxThread,
   ApiInboxItem,
@@ -11,6 +11,9 @@ import {
   createInboxThread,
   deleteInboxItem,
   convertTaskDraft,
+  getInboxItems,
+  getInboxThreads,
+  getTaskDrafts,
   updateTaskDraft,
 } from "../lib/api";
 import { recordActivity, celebrate } from "../lib/local-storage";
@@ -69,6 +72,18 @@ export function SmartInbox({
   const pendingItems = items.filter((item) => item.status === "unprocessed" || item.status === "pending");
   const analyzedItems = items.filter((item) => item.status === "analyzed");
   const convertedItems = items.filter((item) => item.status === "converted");
+
+  useEffect(() => {
+    async function loadUserInbox() {
+      const [freshItems, freshThreads, freshDrafts] = await Promise.all([getInboxItems(), getInboxThreads(), getTaskDrafts()]);
+      setItems(freshItems);
+      setThreads(freshThreads);
+      setDrafts(freshDrafts);
+      setActiveDraft(freshDrafts[0] || null);
+    }
+
+    loadUserInbox();
+  }, []);
 
   async function capture() {
     setError("");

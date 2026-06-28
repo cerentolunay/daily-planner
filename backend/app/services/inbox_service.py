@@ -8,16 +8,16 @@ from ..schemas.inbox_item import InboxItemCreate, InboxItemUpdate, InboxThreadCr
 from .ai.gateway import AIGateway
 
 
-def get_inbox_items(db: Session):
-    return db.query(InboxItem).order_by(InboxItem.created_at.desc()).all()
+def get_inbox_items(db: Session, user_id: UUID):
+    return db.query(InboxItem).filter(InboxItem.user_id == user_id).order_by(InboxItem.created_at.desc()).all()
 
 
-def get_inbox_item(db: Session, inbox_item_id: UUID):
-    return db.query(InboxItem).filter(InboxItem.id == inbox_item_id).first()
+def get_inbox_item(db: Session, inbox_item_id: UUID, user_id: UUID):
+    return db.query(InboxItem).filter(InboxItem.id == inbox_item_id, InboxItem.user_id == user_id).first()
 
 
-def create_inbox_item(db: Session, inbox_item_in: InboxItemCreate):
-    item = InboxItem(**inbox_item_in.model_dump())
+def create_inbox_item(db: Session, inbox_item_in: InboxItemCreate, user_id: UUID):
+    item = InboxItem(**inbox_item_in.model_dump(), user_id=user_id)
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -37,25 +37,25 @@ def delete_inbox_item(db: Session, item: InboxItem):
     db.commit()
 
 
-def get_threads(db: Session):
-    return db.query(InboxThread).options(joinedload(InboxThread.items)).order_by(InboxThread.created_at.desc()).all()
+def get_threads(db: Session, user_id: UUID):
+    return db.query(InboxThread).options(joinedload(InboxThread.items)).filter(InboxThread.user_id == user_id).order_by(InboxThread.created_at.desc()).all()
 
 
-def get_thread(db: Session, thread_id: UUID):
-    return db.query(InboxThread).options(joinedload(InboxThread.items)).filter(InboxThread.id == thread_id).first()
+def get_thread(db: Session, thread_id: UUID, user_id: UUID):
+    return db.query(InboxThread).options(joinedload(InboxThread.items)).filter(InboxThread.id == thread_id, InboxThread.user_id == user_id).first()
 
 
-def create_thread(db: Session, thread_in: InboxThreadCreate):
+def create_thread(db: Session, thread_in: InboxThreadCreate, user_id: UUID):
     payload = thread_in.model_dump()
     item_ids = payload.pop("item_ids", [])
-    thread = InboxThread(**payload)
+    thread = InboxThread(**payload, user_id=user_id)
     db.add(thread)
     db.flush()
     if item_ids:
-        db.query(InboxItem).filter(InboxItem.id.in_(item_ids)).update({"thread_id": thread.id}, synchronize_session=False)
+        db.query(InboxItem).filter(InboxItem.id.in_(item_ids), InboxItem.user_id == user_id).update({"thread_id": thread.id}, synchronize_session=False)
     db.commit()
     db.refresh(thread)
-    return get_thread(db, thread.id)
+    return get_thread(db, thread.id, user_id)
 
 
 def update_thread(db: Session, thread: InboxThread, thread_in: InboxThreadUpdate):
@@ -67,7 +67,7 @@ def update_thread(db: Session, thread: InboxThread, thread_in: InboxThreadUpdate
 
 
 def delete_thread(db: Session, thread: InboxThread):
-    db.query(InboxItem).filter(InboxItem.thread_id == thread.id).update({"thread_id": None}, synchronize_session=False)
+    db.query(InboxItem).filter(InboxItem.thread_id == thread.id, InboxItem.user_id == thread.user_id).update({"thread_id": None}, synchronize_session=False)
     db.delete(thread)
     db.commit()
 
@@ -108,7 +108,7 @@ async def analyze_item(db: Session, item: InboxItem):
     item.detected_project = result.project_hint
     item.detected_priority = result.priority
     item.status = "analyzed"
-    draft = TaskDraft(**analysis_to_draft_payload(result, item.thread_id))
+    draft = TaskDraft(**analysis_to_draft_payload(result, item.thread_id), user_id=item.user_id)
     db.add(draft)
     db.commit()
     db.refresh(item)
@@ -124,7 +124,7 @@ async def analyze_thread(db: Session, thread: InboxThread):
     thread.priority_hint = result.priority
     thread.confidence = result.confidence
     thread.status = "reviewed"
-    draft = TaskDraft(**analysis_to_draft_payload(result, thread.id))
+    draft = TaskDraft(**analysis_to_draft_payload(result, thread.id), user_id=thread.user_id)
     db.add(draft)
     for item in thread.items:
         item.status = "analyzed"
@@ -133,16 +133,16 @@ async def analyze_thread(db: Session, thread: InboxThread):
     return draft
 
 
-def get_task_drafts(db: Session):
-    return db.query(TaskDraft).order_by(TaskDraft.created_at.desc()).all()
+def get_task_drafts(db: Session, user_id: UUID):
+    return db.query(TaskDraft).filter(TaskDraft.user_id == user_id).order_by(TaskDraft.created_at.desc()).all()
 
 
-def get_task_draft(db: Session, draft_id: UUID):
-    return db.query(TaskDraft).filter(TaskDraft.id == draft_id).first()
+def get_task_draft(db: Session, draft_id: UUID, user_id: UUID):
+    return db.query(TaskDraft).filter(TaskDraft.id == draft_id, TaskDraft.user_id == user_id).first()
 
 
-def create_task_draft(db: Session, draft_in: TaskDraftCreate):
-    draft = TaskDraft(**draft_in.model_dump())
+def create_task_draft(db: Session, draft_in: TaskDraftCreate, user_id: UUID):
+    draft = TaskDraft(**draft_in.model_dump(), user_id=user_id)
     db.add(draft)
     db.commit()
     db.refresh(draft)
@@ -164,6 +164,7 @@ def delete_task_draft(db: Session, draft: TaskDraft):
 
 def convert_draft_to_task(db: Session, draft: TaskDraft):
     task = Task(
+        user_id=draft.user_id,
         title=draft.title,
         description=draft.description,
         deadline=draft.deadline,
@@ -176,9 +177,9 @@ def convert_draft_to_task(db: Session, draft: TaskDraft):
     db.add(task)
     db.flush()
     for index, title in enumerate(draft.subtasks_json or []):
-        db.add(Subtask(task_id=task.id, title=title, position=index))
+        db.add(Subtask(user_id=draft.user_id, task_id=task.id, title=title, position=index))
     if draft.thread_id:
-        thread = get_thread(db, draft.thread_id)
+        thread = get_thread(db, draft.thread_id, draft.user_id)
         if thread:
             thread.status = "converted"
             for item in thread.items:

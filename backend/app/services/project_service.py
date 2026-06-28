@@ -1,19 +1,21 @@
-from sqlalchemy.orm import Session
 from uuid import UUID
+
+from sqlalchemy.orm import Session
+
 from ..models.project import Project
 from ..schemas.project import ProjectCreate, ProjectUpdate
 
 
-def get_projects(db: Session):
-    return db.query(Project).all()
+def get_projects(db: Session, user_id: UUID):
+    return db.query(Project).filter(Project.user_id == user_id).order_by(Project.created_at.desc()).all()
 
 
-def get_project(db: Session, project_id: UUID):
-    return db.query(Project).filter(Project.id == project_id).first()
+def get_project(db: Session, project_id: UUID, user_id: UUID):
+    return db.query(Project).filter(Project.id == project_id, Project.user_id == user_id).first()
 
 
-def create_project(db: Session, project_in: ProjectCreate):
-    project = Project(**project_in.model_dump())
+def create_project(db: Session, project_in: ProjectCreate, user_id: UUID):
+    project = Project(**project_in.model_dump(), user_id=user_id)
     db.add(project)
     db.commit()
     db.refresh(project)

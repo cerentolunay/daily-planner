@@ -54,9 +54,9 @@ POSTGRES_USER=dailyplanner
 POSTGRES_PASSWORD=dailyplanner
 POSTGRES_DB=dailyplanner
 NEXT_PUBLIC_API_URL=http://localhost:8000
-AI_PROVIDER=gemini
+AI_PROVIDER=mock
 AI_ENABLED=true
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY=
 GEMINI_MODEL=gemini-1.5-flash
 AI_DAILY_QUOTA_FREE=20
 AI_RATE_LIMIT_PER_MINUTE=10
@@ -97,6 +97,33 @@ Beklenen yanıt:
 ```json
 { "status": "ok" }
 ```
+
+### Auth manual test
+
+Yeni kullanıcı oluştur:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Cerem\",\"email\":\"cerem@example.com\",\"password\":\"dailyplanner123\"}"
+```
+
+Giriş yap:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"cerem@example.com\",\"password\":\"dailyplanner123\"}"
+```
+
+Korunan endpoint örneği:
+
+```bash
+curl http://127.0.0.1:8000/tasks/ \
+  -H "Authorization: Bearer <access_token>"
+```
+
+Token olmadan Task, Project, Inbox, TaskDraft ve AI endpointleri `401` döner. Web uygulaması token yoksa giriş/kayıt ekranını gösterir.
 
 ### Development database reset
 
@@ -140,6 +167,7 @@ Test 6 - Frontend: Inbox'ta mesajları seç, AI ile analiz et, preview gör, Tas
 ## MVP Stabilization Checklist
 
 - Backend, web ve mobile env değerleri ayrı tutulur; AI key sadece backend tarafında kullanılır.
+- Kullanıcı oturumu JWT ile yönetilir; web token'ı localStorage içinde saklar ve API çağrılarına `Authorization` header'ı ekler.
 - Inbox analiz akışı doğrudan task oluşturmaz: `Inbox -> AI Preview -> TaskDraft -> Task + Subtasks`.
 - Docker Compose varsayılanları yerel geliştirme için mock AI fallback ile çalışır.
 - Web build ve backend Docker import kontrolü yeşil olmalıdır.

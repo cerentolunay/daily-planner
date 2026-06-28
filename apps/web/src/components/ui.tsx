@@ -2,6 +2,9 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "danger";
 };
 
+export const formControlClass =
+  "w-full border border-[rgba(93,84,145,0.18)] bg-[rgba(255,255,255,0.72)] text-sm text-purple outline-none transition placeholder:text-[rgba(93,84,145,0.55)] focus:border-purple focus:ring-4 focus:ring-yellow/40";
+
 const buttonVariants = {
   primary: "bg-yellow text-purple shadow-[0_10px_24px_rgba(255,210,48,0.28)] hover:brightness-105",
   secondary: "bg-purple text-white hover:brightness-110",
@@ -32,19 +35,19 @@ export function Card({
   );
 }
 
-export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function Textarea({ className = "", ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className="min-h-[220px] w-full resize-none rounded-3xl border border-purple/18 bg-white/75 p-4 text-sm text-purple outline-none transition placeholder:text-purple/45 focus:border-purple focus:ring-4 focus:ring-yellow/35"
+      className={`min-h-[220px] resize-none rounded-3xl p-4 ${formControlClass} ${className}`}
       {...props}
     />
   );
 }
 
-export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none transition placeholder:text-purple/45 focus:border-purple focus:ring-4 focus:ring-yellow/35"
+      className={`rounded-2xl px-4 py-3 ${formControlClass} ${className}`}
       {...props}
     />
   );

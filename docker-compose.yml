@@ -34,6 +34,8 @@ services:
       AI_FALLBACK_ENABLED: ${AI_FALLBACK_ENABLED:-true}
       AI_MAX_MESSAGES_PER_THREAD: ${AI_MAX_MESSAGES_PER_THREAD:-10}
       AI_MAX_CHARS_PER_REQUEST: ${AI_MAX_CHARS_PER_REQUEST:-8000}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dailyplanner-dev-secret-change-me}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
     volumes:
       - ./backend:/app
     ports:

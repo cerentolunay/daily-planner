@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ApiProject, ApiTask, createProject, deleteProject } from "../lib/api";
+import { useEffect, useMemo, useState } from "react";
+import { ApiProject, ApiTask, createProject, deleteProject, getProjects, getTasks } from "../lib/api";
 import { recordActivity } from "../lib/local-storage";
 import { Button, Card, Input } from "./ui";
 import { ProjectCard } from "./ProjectCard";
@@ -10,6 +10,7 @@ const accents = ["yellow", "neon", "lilac", "purple"] as const;
 
 export function ProjectManager({ initialProjects, tasks }: { initialProjects: ApiProject[]; tasks: ApiTask[] }) {
   const [projects, setProjects] = useState(initialProjects);
+  const [taskList, setTaskList] = useState(tasks);
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -22,6 +23,16 @@ export function ProjectManager({ initialProjects, tasks }: { initialProjects: Ap
       `${project.name} ${project.description || ""}`.toLocaleLowerCase("tr-TR").includes(query.toLocaleLowerCase("tr-TR")),
     );
   }, [projects, query]);
+
+  useEffect(() => {
+    async function loadUserData() {
+      const [freshProjects, freshTasks] = await Promise.all([getProjects(), getTasks()]);
+      setProjects(freshProjects);
+      setTaskList(freshTasks);
+    }
+
+    loadUserData();
+  }, []);
 
   async function saveProject() {
     setError("");
@@ -62,7 +73,7 @@ export function ProjectManager({ initialProjects, tasks }: { initialProjects: Ap
   }
 
   function metricsFor(projectId: string) {
-    const projectTasks = tasks.filter((task) => task.project_id === projectId);
+    const projectTasks = taskList.filter((task) => task.project_id === projectId);
     return {
       total: projectTasks.length,
       active: projectTasks.filter((task) => task.status !== "done" && task.status !== "cancelled").length,

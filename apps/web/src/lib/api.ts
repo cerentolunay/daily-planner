@@ -92,13 +92,63 @@ export type ApiAIUsageSummary = {
   success_rate: number;
 };
 
+export type ApiUser = {
+  id: string;
+  name: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AuthResponse = {
+  access_token: string;
+  token_type: "bearer";
+  user: ApiUser;
+};
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const TOKEN_KEY = "dailyplanner.accessToken";
+
+export function getAuthToken() {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearAuthToken() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(TOKEN_KEY);
+}
+
+function authHeaders(headers?: HeadersInit): HeadersInit {
+  const token = getAuthToken();
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...headers,
+  };
+}
+
+function apiErrorMessage(payload: unknown, fallback: string) {
+  if (payload && typeof payload === "object" && "detail" in payload) {
+    const detail = (payload as { detail?: unknown }).detail;
+    if (typeof detail === "string") return detail;
+    if (detail && typeof detail === "object" && "message" in detail && typeof (detail as { message?: unknown }).message === "string") {
+      return String((detail as { message: string }).message);
+    }
+  }
+  return fallback;
+}
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T[]> {
   try {
     const response = await fetch(`${API_URL}${path}`, {
       cache: "no-store",
       ...options,
+      headers: authHeaders(options?.headers),
     });
 
     if (!response.ok) {
@@ -114,11 +164,11 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T[]> {
 async function apiJson<T>(path: string, options: RequestInit): Promise<T | null> {
   try {
     const response = await fetch(`${API_URL}${path}`, {
+      ...options,
       headers: {
         "Content-Type": "application/json",
-        ...options.headers,
+        ...authHeaders(options.headers),
       },
-      ...options,
     });
 
     if (!response.ok) {
@@ -138,21 +188,40 @@ async function apiJson<T>(path: string, options: RequestInit): Promise<T | null>
 async function apiJsonResult<T>(path: string, options: RequestInit): Promise<{ data: T | null; error?: string }> {
   try {
     const response = await fetch(`${API_URL}${path}`, {
+      ...options,
       headers: {
         "Content-Type": "application/json",
-        ...options.headers,
+        ...authHeaders(options.headers),
       },
-      ...options,
     });
     const payload = response.status === 204 ? null : await response.json();
     if (!response.ok) {
-      const detail = payload?.detail;
-      return { data: null, error: detail?.message || "AI analizi sırasında bir sorun oluştu." };
+      return { data: null, error: apiErrorMessage(payload, "İstek sırasında bir sorun oluştu.") };
     }
     return { data: payload };
   } catch {
     return { data: null, error: "Backend ile bağlantı kurulamadı." };
   }
+}
+
+export function registerUser(payload: { name: string; email: string; password: string }) {
+  return apiJsonResult<AuthResponse>("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function loginUser(payload: { email: string; password: string }) {
+  return apiJsonResult<AuthResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getCurrentUser() {
+  return apiJson<ApiUser>("/auth/me", {
+    method: "GET",
+  });
 }
 
 export function getTasks() {

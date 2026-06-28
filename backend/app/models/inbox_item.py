@@ -10,6 +10,7 @@ class InboxItem(Base):
     __tablename__ = "inbox_items"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     source_type = Column(String(50), nullable=False, default="manual")
     content_type = Column(String(50), nullable=False, default="text")
     raw_text = Column(Text, nullable=False)
@@ -26,6 +27,7 @@ class InboxItem(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+    user = relationship("User", back_populates="inbox_items")
     thread = relationship("InboxThread", back_populates="items")
 
 
@@ -33,6 +35,7 @@ class InboxThread(Base):
     __tablename__ = "inbox_threads"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     title = Column(String(255), nullable=False)
     summary = Column(Text, nullable=True)
     project_hint = Column(String(120), nullable=True)
@@ -43,6 +46,7 @@ class InboxThread(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+    user = relationship("User", back_populates="inbox_threads")
     items = relationship("InboxItem", back_populates="thread")
 
 
@@ -50,6 +54,7 @@ class TaskDraft(Base):
     __tablename__ = "task_drafts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     thread_id = Column(UUID(as_uuid=True), ForeignKey("inbox_threads.id"), nullable=True)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
@@ -63,4 +68,5 @@ class TaskDraft(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+    user = relationship("User", back_populates="task_drafts")
     thread = relationship("InboxThread")

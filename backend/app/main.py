@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from .api.routes.health import router as health_router
+from .api.routes.auth import router as auth_router
 from .api.routes.tasks import router as tasks_router
 from .api.routes.projects import router as projects_router
 from .api.routes.inbox import router as inbox_router
@@ -23,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(projects_router)
 app.include_router(inbox_router)
@@ -33,3 +36,6 @@ app.include_router(ai_router)
 @app.on_event("startup")
 def create_tables():
     Base.metadata.create_all(bind=engine)
+    with engine.begin() as connection:
+        for table in ["projects", "tasks", "subtasks", "inbox_items", "inbox_threads", "task_drafts"]:
+            connection.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS user_id UUID"))

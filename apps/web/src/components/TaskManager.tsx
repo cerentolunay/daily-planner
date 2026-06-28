@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { priorityLabels, sortLabels, statusLabels, taskFilterLabels } from "../constants/labels";
-import { ApiProject, ApiTask, createSubtask, deleteSubtask, createTask, deleteTask, updateSubtask, updateTask } from "../lib/api";
+import { ApiProject, ApiTask, createSubtask, deleteSubtask, createTask, deleteTask, getProjects, getTasks, updateSubtask, updateTask } from "../lib/api";
 import { celebrate, recordActivity, readJson, storageKeys, writeJson } from "../lib/local-storage";
 import { Button, Card, Input } from "./ui";
 import { PriorityBadge, StatusBadge } from "./badges";
@@ -77,6 +77,7 @@ function deadlineFor(action: "today" | "tomorrow" | "week" | "clear") {
 }
 
 export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[]; projects: ApiProject[] }) {
+  const [projectList, setProjectList] = useState(projects);
   const [tasks, setTasks] = useState<UiTask[]>(
     initialTasks.map((task) => ({
       ...task,
@@ -95,6 +96,21 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
   useEffect(() => {
     const storedFilter = readJson<(typeof taskFilterLabels)[number]>(storageKeys.lastSelectedFilter, "Tümü");
     if (taskFilterLabels.includes(storedFilter)) setFilter(storedFilter);
+  }, []);
+
+  useEffect(() => {
+    async function loadUserData() {
+      const [freshTasks, freshProjects] = await Promise.all([getTasks(), getProjects()]);
+      setProjectList(freshProjects);
+      setTasks(
+        freshTasks.map((task) => ({
+          ...task,
+          projectName: freshProjects.find((project) => project.id === task.project_id)?.name || "Proje yok",
+        })),
+      );
+    }
+
+    loadUserData();
   }, []);
 
   const filteredTasks = useMemo(() => {
@@ -164,7 +180,7 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
       return;
     }
 
-    const projectName = projects.find((project) => project.id === saved.project_id)?.name || "Proje yok";
+    const projectName = projectList.find((project) => project.id === saved.project_id)?.name || "Proje yok";
     setTasks((current) =>
       form.id
         ? current.map((task) => (task.id === saved.id ? { ...saved, projectName } : task))
@@ -389,7 +405,7 @@ export function TaskManager({ initialTasks, projects }: { initialTasks: ApiTask[
           <Input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Açıklama" />
           <select value={form.project_id} onChange={(event) => setForm({ ...form, project_id: event.target.value })} className="w-full rounded-2xl border border-purple/18 bg-white/75 px-4 py-3 text-sm text-purple outline-none">
             <option value="">Proje yok</option>
-            {projects.map((project) => (
+            {projectList.map((project) => (
               <option key={project.id} value={project.id}>{project.name}</option>
             ))}
           </select>

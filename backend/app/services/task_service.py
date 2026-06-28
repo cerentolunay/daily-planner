@@ -4,22 +4,22 @@ from ..models.task import Subtask, Task
 from ..schemas.task import TaskCreate, TaskUpdate
 
 
-def get_tasks(db: Session):
-    return db.query(Task).all()
+def get_tasks(db: Session, user_id: UUID):
+    return db.query(Task).filter(Task.user_id == user_id).order_by(Task.created_at.desc()).all()
 
 
-def get_task(db: Session, task_id: UUID):
-    return db.query(Task).filter(Task.id == task_id).first()
+def get_task(db: Session, task_id: UUID, user_id: UUID):
+    return db.query(Task).filter(Task.id == task_id, Task.user_id == user_id).first()
 
 
-def create_task(db: Session, task_in: TaskCreate):
+def create_task(db: Session, task_in: TaskCreate, user_id: UUID):
     payload = task_in.model_dump()
     subtasks = payload.pop("subtasks", [])
-    task = Task(**payload)
+    task = Task(**payload, user_id=user_id)
     db.add(task)
     db.flush()
     for index, subtask in enumerate(subtasks):
-        db.add(Subtask(task_id=task.id, position=subtask.get("position", index), title=subtask["title"], is_completed=subtask.get("is_completed", False)))
+        db.add(Subtask(user_id=user_id, task_id=task.id, position=subtask.get("position", index), title=subtask["title"], is_completed=subtask.get("is_completed", False)))
     db.commit()
     db.refresh(task)
     return task
@@ -40,7 +40,7 @@ def delete_task(db: Session, task: Task):
 
 def create_subtask(db: Session, task: Task, title: str, position: int | None = None):
     next_position = position if position is not None else len(task.subtasks)
-    subtask = Subtask(task_id=task.id, title=title, position=next_position)
+    subtask = Subtask(user_id=task.user_id, task_id=task.id, title=title, position=next_position)
     db.add(subtask)
     db.commit()
     db.refresh(subtask)
@@ -55,8 +55,8 @@ def update_subtask(db: Session, subtask: Subtask, values: dict):
     return subtask
 
 
-def get_subtask(db: Session, subtask_id: UUID):
-    return db.query(Subtask).filter(Subtask.id == subtask_id).first()
+def get_subtask(db: Session, subtask_id: UUID, user_id: UUID):
+    return db.query(Subtask).filter(Subtask.id == subtask_id, Subtask.user_id == user_id).first()
 
 
 def delete_subtask(db: Session, subtask: Subtask):

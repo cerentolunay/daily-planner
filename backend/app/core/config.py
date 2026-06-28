@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     ai_fallback_enabled: bool = True
     ai_max_messages_per_thread: int = 10
     ai_max_chars_per_request: int = 8000
+    jwt_secret_key: str = "dailyplanner-dev-secret-change-me"
+    jwt_access_token_expire_minutes: int = 60 * 24 * 7
 
 
 @lru_cache()
