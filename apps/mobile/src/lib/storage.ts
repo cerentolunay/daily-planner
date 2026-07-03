@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 import { CaptureQueueItem } from "../types";
-import { DEFAULT_BACKEND_URL } from "./config";
+import { ANDROID_EMULATOR_BACKEND_URL, DEFAULT_BACKEND_URL, LOCAL_BACKEND_URL } from "./config";
 
 const keys = {
   backendUrl: "dailyplanner.mobile.backendUrl",
@@ -26,7 +27,9 @@ function notifyAuthChange() {
 }
 
 export async function getBackendUrl() {
-  return (await AsyncStorage.getItem(keys.backendUrl)) || DEFAULT_BACKEND_URL;
+  const storedUrl = await AsyncStorage.getItem(keys.backendUrl);
+  if (Platform.OS === "android" && storedUrl === LOCAL_BACKEND_URL) return ANDROID_EMULATOR_BACKEND_URL;
+  return storedUrl || DEFAULT_BACKEND_URL;
 }
 
 export async function setBackendUrl(url: string) {

@@ -23,9 +23,10 @@ services:
       POSTGRES_USER: dailyplanner
       POSTGRES_PASSWORD: dailyplanner
       POSTGRES_DB: dailyplanner
-      AI_PROVIDER: mock
+      AI_PROVIDER: gemini
       AI_ENABLED: "true"
-      GEMINI_MODEL: gemini-1.5-flash
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: gemini-2.0-flash
       AI_DAILY_QUOTA_FREE: "20"
       AI_DAILY_QUOTA_PRO: "300"
       AI_RATE_LIMIT_PER_MINUTE: "10"

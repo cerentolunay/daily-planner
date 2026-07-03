@@ -1,10 +1,13 @@
-import { ApiInboxItem, ApiInboxThread, ApiProject, ApiTask, ApiTaskDraft, ApiUser, AuthResponse, CaptureQueueItem } from "../types";
+import { AIAnalysisResult, ApiInboxItem, ApiInboxThread, ApiProject, ApiSubtask, ApiTask, ApiTaskDraft, ApiUser, AuthResponse, CaptureQueueItem } from "../types";
 import { clearAuthTokens, getAccessToken, getBackendUrl, getRefreshToken, setAuthTokens } from "./storage";
 
 async function request<T>(path: string, options?: RequestInit, allowRefresh = true): Promise<T | null> {
   try {
     const baseUrl = await getBackendUrl();
     const token = await getAccessToken();
+    if (__DEV__) {
+      console.log(`[API] ${options?.method ?? "GET"} ${baseUrl}${path}`);
+    }
     const response = await fetch(`${baseUrl}${path}`, {
       ...options,
       headers: {
@@ -17,9 +20,16 @@ async function request<T>(path: string, options?: RequestInit, allowRefresh = tr
       const refreshed = await refreshSession();
       if (refreshed) return request<T>(path, options, false);
     }
-    if (!response.ok) return null;
+    if (!response.ok) {
+      if (__DEV__) {
+        const body = await response.text().catch(() => "");
+        console.warn(`[API] ${response.status} ${baseUrl}${path}`, body);
+      }
+      return null;
+    }
     return response.status === 204 ? null : ((await response.json()) as T);
-  } catch {
+  } catch (err) {
+    if (__DEV__) console.error(`[API] fetch error ${path}:`, err);
     return null;
   }
 }
@@ -141,8 +151,29 @@ export function analyzeInboxThread(id: string) {
   return request<ApiTaskDraft>(`/inbox/threads/${id}/analyze`, { method: "POST", body: JSON.stringify({}) });
 }
 
-export function analyzeText(text: string) {
-  return request<ApiTaskDraft | Record<string, unknown>>("/ai/analyze/text", { method: "POST", body: JSON.stringify({ text }) });
+export async function analyzeText(text: string) {
+  const result = await request<AIAnalysisResult>("/ai/analyze/text", { method: "POST", body: JSON.stringify({ text }) });
+  if (__DEV__) {
+    console.log("[AI] analyzeText yanıtı:", JSON.stringify(result, null, 2));
+  }
+  return result;
+}
+
+export function convertTaskDraftToTaskWithSubtasks(id: string) {
+  return request<{ task: ApiTask; subtasks: ApiSubtask[] } | ApiTask>(`/task-drafts/${id}/convert-to-task`, { method: "POST", body: JSON.stringify({}) });
+}
+
+export async function healthCheck(): Promise<boolean> {
+  try {
+    const baseUrl = await getBackendUrl();
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(`${baseUrl}/health`, { method: "GET", signal: controller.signal });
+    clearTimeout(id);
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 export function analyzeThread(messages: string[]) {

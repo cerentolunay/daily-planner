@@ -19,6 +19,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+        "http://localhost:19006",
+        "http://127.0.0.1:19006",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -44,4 +48,15 @@ def create_tables():
         connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_thread_id UUID"))
         connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_inbox_item_id UUID"))
         connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS ai_result_json JSONB"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS content_type VARCHAR(50) NOT NULL DEFAULT 'text'"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS title VARCHAR(255)"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS source_name VARCHAR(120)"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS source_url TEXT"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS metadata_json JSONB"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS detected_title VARCHAR(255)"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS detected_deadline VARCHAR(120)"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS detected_project VARCHAR(120)"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS detected_priority VARCHAR(20)"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS thread_id UUID"))
+        connection.execute(text("ALTER TABLE inbox_items ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now()"))
         connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN NOT NULL DEFAULT FALSE"))

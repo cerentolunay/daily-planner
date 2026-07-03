@@ -105,3 +105,20 @@ export type AuthResponse = {
   token_type: "bearer";
   user: ApiUser;
 };
+
+export type AIAnalysisResult = {
+  title: string;
+  description?: string | null;
+  project_hint?: string | null;
+  deadline?: string | null;
+  priority: Priority;
+  status: TaskStatus;
+  subtasks?: string[];
+  confidence?: number;
+  confidence_label?: string | null;
+  source_summary?: string | null;
+  reasoning_summary?: string | null;
+  cache_hit?: boolean;
+  used_fallback?: boolean;
+  error?: string | null;
+};

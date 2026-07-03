@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from pathlib import Path
 
 from ..errors import AIError
@@ -7,9 +8,17 @@ from .base import AIProvider
 
 PROMPT_DIR = Path(__file__).resolve().parents[1] / "prompts"
 
+WEEKDAYS_TR = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+
 
 def read_prompt(name: str) -> str:
     return (PROMPT_DIR / name).read_text(encoding="utf-8")
+
+
+def current_date_block() -> str:
+    now = datetime.now()
+    weekday = WEEKDAYS_TR[now.weekday()]
+    return f"BUGÜNÜN TARİHİ: {now.strftime('%Y-%m-%d %H:%M')} ({weekday})"
 
 
 class GeminiProvider(AIProvider):
@@ -32,6 +41,7 @@ class GeminiProvider(AIProvider):
         prompt = "\n\n".join(
             [
                 read_prompt("system_rules.md"),
+                current_date_block(),
                 read_prompt("task_extraction.md"),
                 "KULLANICI MESAJI:",
                 text,
@@ -44,6 +54,7 @@ class GeminiProvider(AIProvider):
         prompt = "\n\n".join(
             [
                 read_prompt("system_rules.md"),
+                current_date_block(),
                 read_prompt("thread_extraction.md"),
                 "KULLANICI MESAJLARI:",
                 message_block,

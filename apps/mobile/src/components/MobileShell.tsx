@@ -43,8 +43,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.purple,
-    fontSize: 34,
-    lineHeight: 39,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: "900",
   },
 });
